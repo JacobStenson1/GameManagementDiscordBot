@@ -15,7 +15,7 @@ bot.on('message', () => {
 // When a user's presence updates.
 bot.on('presenceUpdate', async(oldMember, newMember) => {
     if(oldMember.presence.game !== newMember.presence.game){
-        console.log("Presence changed.")
+        console.log(newMember.displayName+"'s presence changed.")
     }
 });
 
