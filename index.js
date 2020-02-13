@@ -31,11 +31,6 @@ bot.on('ready', () => {
     console.log("Bot online.")
 });
 
-// When a message is sent to the server.
-bot.on('message', () => {
-    console.log("Message was sent.");
-});
-
 // When a user's presence updates.
 bot.on('presenceUpdate', async(oldMember, newMember) => {
     if(oldMember.presence.game !== newMember.presence.game){
@@ -68,6 +63,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
     }
 });
 
+// When a message is sent to the server.
 bot.on('message', message=>{
     console.log("A message was sent in the server.")
 })
