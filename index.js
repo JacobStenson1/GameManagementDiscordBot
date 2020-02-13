@@ -27,8 +27,9 @@ function save(){
 // -------------------------------------------------------------------------------------------
 
 // Ran when the bot is ready on the server.
-bot.on('ready', () => {
-    console.log("Bot online.")
+bot.on('ready', async() => {
+    console.log("Bot online.");
+    UpdatePresence();
 });
 
 // Called when bot is added to a new server.
@@ -42,6 +43,8 @@ bot.on('guildCreate', async(guild) => {
     if (!fs.existsSync(ServerWhitelistFilePath)){
         await InitialiseNewServer(ServerWhitelistFilePath, guild);
     }
+
+    UpdatePresence();
 });
 
 // Called when bot is removed from a server.
@@ -129,8 +132,6 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 
 // When a message is sent to the server.
 bot.on('message', async(message) => {
-    console.log("A message was sent in the server.");
-
     if (message.author.bot){return;}
 
     let args = message.content.split(" ");
@@ -142,6 +143,7 @@ bot.on('message', async(message) => {
     switch(args[0]){
         case '!gmtest':
             message.channel.send("Bot is running!");
+            return;
         case '!gmadd':
             // User only entered 'add' as a command and nothing else.
             if (args.length == 1){
@@ -155,9 +157,11 @@ bot.on('message', async(message) => {
 
                 AddRoleToWhitelist(message,args);
 
-            }else{
-                message.reply("You do not have permission to use that command.");
-            }
+            }else{ message.reply("You do not have permission to use that command."); }
+
+            return;
+        case '!gmhelp':
+            message.reply("Help has not been implemented yet. Coming soon.")
     }
 })
 
@@ -206,6 +210,11 @@ async function InitialiseNewServer(ServerWhitelistFilePath, guild){
 
     console.log("Added server: "+ guild.name +" to records.");
     })
+}
+
+// Update the presence to display total servers the bot is in.
+async function UpdatePresence(){
+    bot.user.setPresence({ game: { name: "!gmhelp - Adding Roles In "+bot.guilds.size+" Servers!", type: 0 } });
 }
 
 bot.login(token);
