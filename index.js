@@ -113,12 +113,33 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         if(newMember.guild.id == 674598594464186388){
             // Does the category we are going to create already exist?
             if(newMember.guild.channels.find(x => x.name == gameUserIsPlaying)){ return; }
+
+            // Create category.
             var newCategory = await newMember.guild.createChannel(gameUserIsPlaying, {type: "category"});
-            
-            newCategory.overwritePermissions(message.guild.roles.find('name', '@everyone'), { // Disallow Everyone to see, join, invite, or speak
+            // Disallow Everyone to see, join, invite, or speak. Only allow people with the game's role to join.
+            newCategory.overwritePermissions(newMember.guild.defaultRole, {
                 'CREATE_INSTANT_INVITE' : false,        'VIEW_CHANNEL': false,
                 'CONNECT': false,                       'SPEAK': false
             });
+
+            newCategory.overwritePermissions(roleToAddToMember, {
+                'CREATE_INSTANT_INVITE' : false,        'VIEW_CHANNEL': true,
+                'CONNECT': true,                       'SPEAK': true
+            });
+            
+
+            // Create voice channel for game.
+            var newVoiceChannel = await newMember.guild.createChannel(`${gameUserIsPlaying} Voice`, {type: "voice"});
+            await newVoiceChannel.setParent(newCategory);
+            await newVoiceChannel.lockPermissions();
+
+            // Create text channel for game.
+            var newtTextChannel = await newMember.guild.createChannel(`${gameUserIsPlaying} Text Channel`, {type: "text"});
+            await newtTextChannel.setParent(newCategory);
+            await newtTextChannel.lockPermissions();
+
+            console.log("Created category and channel.")
+            
             console.log(newCategory.name);
         }
 
