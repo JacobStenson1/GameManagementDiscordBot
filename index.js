@@ -64,20 +64,22 @@ bot.on('guildDelete', async(guild) => {
 bot.on('presenceUpdate', async(oldMember, newMember) => {
     if(oldMember.presence.game !== newMember.presence.game){
         // Return out if presence is spotify or if member is a bot or if the presence is now nothing.
-        if((newMember.presence.game == "Spotify") || (newMember.bot) || (newMember.presence == null)){ return; }
-        
-        console.log(newMember.displayName+"'s in "+ newMember.guild.name+" presence changed.");
+        if((newMember.presence.game == "Spotify") || (newMember.bot) || (newMember.presence.game == null)){ return; }
+
+        console.log(`${newMember.displayName}'s in ${newMember.guild.name} presence changed.`);
 
         var serverWhitelist = require("./ServerWhitelists/"+newMember.guild.id+".json");
-
         var gameUserIsPlaying = newMember.presence.game.name;
-        //var gameUserIsPlaying = "Minecraft";
-        console.log(gameUserIsPlaying)
-
-        roleFromWhitelist = serverWhitelist[gameUserIsPlaying]
+        roleFromWhitelist = serverWhitelist[gameUserIsPlaying];
         var roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
         var roleToAddToMember;
         
+        console.log(gameUserIsPlaying)
+        console.log(gameUserIsPlaying in serverWhitelist);
+
+        // Is the game the user is playing in the whitelist?
+        if (!(gameUserIsPlaying in serverWhitelist)){ return; }
+
         // If the search by ID netted results.
         if (roleSearchByID){
             roleToAddToMember = roleSearchByID;
@@ -86,23 +88,39 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
             // If search for the role found nothing.
             if (!roleSearchByName){
                 // Create the role
-                await newMember.guild.createRole({name:roleFromWhitelist, mentionable:true})
-                console.log("Created new role.")
-                roleToAddToMember = newMember.guild.roles.find(x => x.name == roleFromWhitelist);
+                var roleToAddToMember = await newMember.guild.createRole({name:roleFromWhitelist, mentionable:true});
+                console.log("Created new role.");
             }else{
                 roleToAddToMember = roleSearchByName;
             }
         }
 
         // If the member already has the role, return out.
-        if(newMember.roles.has(roleToAddToMember.id)){return;}
+        try{
+            if(newMember.roles.has(roleToAddToMember.id)){return;}
+        }catch{}
+        
 
         // Give the member the role.
         newMember.addRole(roleToAddToMember);
 
-        console.log(roleToAddToMember.name)
-        console.log("Added role to member.")
+        console.log(roleToAddToMember.name);
+        console.log(`Added role to ${newMember.displayName}.`);
 
+        // if admin has catgegory creation on then create the role category here, based on the game.
+
+        // Only execute this code in the testing server.
+        if(newMember.guild.id == 674598594464186388){
+            // Does the category we are going to create already exist?
+            if(newMember.guild.channels.find(x => x.name == gameUserIsPlaying)){ return; }
+            var newCategory = await newMember.guild.createChannel(gameUserIsPlaying, {type: "category"});
+            
+            newCategory.overwritePermissions(message.guild.roles.find('name', '@everyone'), { // Disallow Everyone to see, join, invite, or speak
+                'CREATE_INSTANT_INVITE' : false,        'VIEW_CHANNEL': false,
+                'CONNECT': false,                       'SPEAK': false
+            });
+            console.log(newCategory.name);
+        }
 
         //get content from when role is @ by removing <@>
 
@@ -154,7 +172,6 @@ bot.on('message', async(message) => {
 
             // Does user have manage roles permission?
             if (message.member.hasPermission(['MANAGE_ROLES'])){
-
                 AddRoleToWhitelist(message,args);
 
             }else{ message.reply("You do not have permission to use that command."); }
@@ -191,7 +208,8 @@ async function AddRoleToWhitelist(message,args){
         if(err) throw(err);
     });
 
-    console.log("Added game to whitelist.")
+    message.reply(gameName+" added to whitelist with role: "+roleToAdd);
+    console.log("Added game to whitelist.");
 }
 
 // Create role and create voice and text channels for it. (May want to seperate this into two seperate functions. One for creating role and another for creating the text and voice stuff.)
