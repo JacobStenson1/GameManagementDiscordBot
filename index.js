@@ -1,10 +1,13 @@
 const Discord = require('discord.js');
 const jsonfile = require('jsonfile');
+const fs = require('fs');
+
 const {prefix, token} = require('./config.json');
 
 const bot = new Discord.Client();
 
 
+// DONT KNOW IF SAVING IS NEEDED AS WHITELISTS WILL BE PULLED AT RUNTIME
 // Limits how often saves can happen to avoid abuse
 function scheduleSave(){
     if(saved){
@@ -21,6 +24,7 @@ function save(){
     console.log("Whitelist file saved.")
     saved = true;
 }
+// -------------------------------------------------------------------------------------------
 
 // Ran when the bot is ready on the server.
 bot.on('ready', () => {
@@ -39,6 +43,18 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         //if(newMember.presence.game == "Spotify" || !newMember.bot || newMember.presence == null){ return; }
         console.log(newMember.displayName+"'s presence changed.");
         console.log(newMember.guild.name+" - "+newMember.guild.id);
+
+        // Check to see if the server's whitelist exists
+        var ServerWhitelistFilePath = "./ServerWhitelists/"+newMember.guild.id+".json";
+        if (!fs.existsSync(ServerWhitelistFilePath)){
+            await InitialiseNewServer(ServerWhitelistFilePath);
+        }else{
+            // Server whitelist exists.
+            var serverWhitelist = require(ServerWhitelistFilePath);
+        }
+        
+        // Check to see if the whitelist is empty.. if it is just return...
+
 
         //var serverWhitelist = require("./ServerWhitelists/"+newMember.guild.id+".json")
 
@@ -61,5 +77,12 @@ function CreateRoleTextVoiceChannel(){
 
 }
 
+async function InitialiseNewServer(ServerWhitelistFilePath){
+    console.log("A new server was added.`")
+    var emptyObj = {}
+    jsonfile.writeFile(ServerWhitelistFilePath, emptyObj, function(err){
+        if(err) throw(err);
+    });
+}
 
 bot.login(token);
