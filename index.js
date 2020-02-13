@@ -31,6 +31,30 @@ bot.on('ready', () => {
     console.log("Bot online.")
 });
 
+// Called when bot is added to a new server.
+bot.on('guildCreate', async(guild) => {
+    console.log("Bot was added to a new server.")
+    var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    await InitialiseNewServer(ServerWhitelistFilePath, guild);
+
+    // Check to see if the server's whitelist exists. (This is basically a check to see if the bot has been added to this server before)
+    var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    if (!fs.existsSync(ServerWhitelistFilePath)){
+        await InitialiseNewServer(ServerWhitelistFilePath, guild);
+    }
+});
+
+// Called when bot is removed from a server.
+bot.on('guildDelete', async(guild) => {
+    console.log("Bot was removed from a server.")
+    // Delete the server from records.
+    var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    fs.unlink(ServerWhitelistFilePath, function(err) {
+        if (err) throw err;
+    console.log(guild.name + " whitelist removed.")
+    })
+});
+
 // When a user's presence updates.
 bot.on('presenceUpdate', async(oldMember, newMember) => {
     if(oldMember.presence.game !== newMember.presence.game){
@@ -39,14 +63,16 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         console.log(newMember.displayName+"'s presence changed.");
         console.log(newMember.guild.name+" - "+newMember.guild.id);
 
-        // Check to see if the server's whitelist exists
+        var serverWhitelist = require("./ServerWhitelists/"+newMember.guild.id+".json");
+
+        /* // Check to see if the server's whitelist exists
         var ServerWhitelistFilePath = "./ServerWhitelists/"+newMember.guild.id+".json";
         if (!fs.existsSync(ServerWhitelistFilePath)){
-            await InitialiseNewServer(ServerWhitelistFilePath);
+            await InitialiseNewServer(ServerWhitelistFilePath, newMember);
         }else{
             // Server whitelist exists.
             var serverWhitelist = require(ServerWhitelistFilePath);
-        }
+        } */
         
         // Check to see if the whitelist is empty.. if it is just return...
 
@@ -68,17 +94,24 @@ bot.on('message', message=>{
     console.log("A message was sent in the server.")
 })
 
+// Functions below ---
+
 // Create role and create voice and text channels for it. (May want to seperate this into two seperate functions. One for creating role and another for creating the text and voice stuff.)
 function CreateRoleTextVoiceChannel(){
 
 }
 
-async function InitialiseNewServer(ServerWhitelistFilePath){
-    console.log("A new server was added.`")
+async function InitialiseNewServer(ServerWhitelistFilePath, guild){
     var emptyObj = {}
     jsonfile.writeFile(ServerWhitelistFilePath, emptyObj, function(err){
         if(err) throw(err);
     });
+    var serverNameContent = guild.name + " - " + guild.id+"\n"
+    fs.appendFile('ListOfServers.txt', serverNameContent, function (err) {
+        if (err) throw err;
+
+    console.log("Added server: "+ guild.name +" to records.");
+    })
 }
 
 bot.login(token);
