@@ -35,8 +35,6 @@ bot.on('ready', async() => {
 // Called when bot is added to a new server.
 bot.on('guildCreate', async(guild) => {
     console.log("Bot was added to a new server.")
-    //var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
-    //await InitialiseNewServer(ServerWhitelistFilePath, guild);
 
     // Check to see if the server's whitelist exists. (This is basically a check to see if the bot has been added to this server before)
     var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
@@ -46,20 +44,14 @@ bot.on('guildCreate', async(guild) => {
 
     //Call OnJoinSettings() function.
     OnJoinSettings(guild);
-
     UpdatePresence();
 });
 
 // Called when bot is removed from a server.
 bot.on('guildDelete', async(guild) => {
     console.log("Bot was removed from a server.")
-    // Delete the server from records.
-    var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
-    fs.unlink(ServerWhitelistFilePath, function(err) {
-        if (err) throw err;
-    console.log(guild.name + " whitelist removed.")
-    })
-
+    // Delete all records of the the server.
+    DeleteServerRecords(guild);
     UpdatePresence();
 });
 
@@ -94,9 +86,10 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
             var roleSearchByName = newMember.guild.roles.find(x => x.name == roleFromWhitelist);
             // If search for the role found nothing.
             if (!roleSearchByName){
+                console.log(`Can't find ${roleFromWhitelist} role. Adding it to server: ${newMember.guild.name}`)
                 // Create the role
                 var roleToAddToMember = await newMember.guild.createRole({name:roleFromWhitelist, mentionable:true});
-                console.log("Created new role.");
+                console.log(`Created ${roleToAddToMember.name} role.`);
             }else{
                 roleToAddToMember = roleSearchByName;
             }
@@ -107,12 +100,10 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
             if(newMember.roles.has(roleToAddToMember.id)){return;}
         }catch{}
         
-
         // Give the member the role.
         newMember.addRole(roleToAddToMember);
 
-        console.log(roleToAddToMember.name);
-        console.log(`Added role to ${newMember.displayName}.`);
+        console.log(`Added role: ${roleToAddToMember.name} to ${newMember.displayName}.`);
 
         // if admin has catgegory creation on then create the role category here, based on the game.
 
@@ -155,6 +146,8 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 // When a message is sent to the server.
 bot.on('message', async(message) => {
     if (message.author.bot){return;}
+
+    console.log(message.content);
 
     let args = message.content.split(" ");
     //args.shift();
@@ -252,12 +245,28 @@ async function InitialiseNewServer(ServerWhitelistFilePath, guild){
         if(err) throw(err);
     });
 
-    var serverNameContent = guild.name + " - " + guild.id+"\n"
-    fs.appendFile('ListOfServers.txt', serverNameContent, function (err) {
-        if (err) throw err;
 
-    console.log("Added server: "+ guild.name +" to records.");
-    })
+    console.log("Added server: "+ guild.name +" to records.");  
+}
+
+function DeleteServerRecords(guild){
+    var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+
+    // Delete the whitelist used by the server.
+    fs.unlink(ServerWhitelistFilePath, function(err) {
+        if (err) throw err;
+    console.log(guild.name + " whitelist removed.")
+    });
+
+    var listOfServersJSON = "./ListOfServers.json";
+    var newServerObj = require(listOfServersJSON);
+    
+    // Delete the server from the ListOfServers.json file.
+    delete newServerObj[guild.name];
+
+    jsonfile.writeFile(listOfServersJSON, newServerObj, { spaces: 2, EOL: '\r\n' }, function(err){
+        if(err) throw(err);
+    });
 }
 
 // Update the presence to display total servers the bot is in.
