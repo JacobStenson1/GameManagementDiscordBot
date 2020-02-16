@@ -69,9 +69,11 @@ bot.on('guildDelete', async(guild) => {
 bot.on('presenceUpdate', async(oldMember, newMember) => {
     if(oldMember.presence.game !== newMember.presence.game){
         // Return out if presence is spotify or if member is a bot or if the presence is now nothing.
-        if((newMember.presence.game == "Spotify") || (newMember.bot) || (newMember.presence.game == null)){ OnJoinSettings(newMember.guild); return; }
+        if((newMember.presence.game == "Spotify") || (newMember.bot) || (newMember.presence.game == null)){ return; }
 
-        console.log(`${newMember.displayName}'s in ${newMember.guild.name} presence changed.`);
+        console.log("\n")
+
+        console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
 
         var serverWhitelist = require("./ServerWhitelists/"+newMember.guild.id+".json");
         var gameUserIsPlaying = newMember.presence.game.name;
@@ -79,8 +81,8 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         var roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
         var roleToAddToMember;
         
-        console.log(gameUserIsPlaying)
-        console.log(gameUserIsPlaying in serverWhitelist);
+        console.log(`The game they are now playing is: ${gameUserIsPlaying}`);
+        console.log(`Is their game in the server's whitelist? ${gameUserIsPlaying in serverWhitelist}`);
 
         // Is the game the user is playing in the whitelist?
         if (!(gameUserIsPlaying in serverWhitelist)){ return; }
@@ -100,7 +102,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
             }
         }
 
-        // If the member already has the role, return out.
+        // If the member already has the role, return out. This is done inside a try so the code doesnt error in console.
         try{
             if(newMember.roles.has(roleToAddToMember.id)){return;}
         }catch{}
@@ -146,31 +148,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
             console.log("Created category and channel.")
             
             console.log(newCategory.name);
-        }
-
-        //get content from when role is @ by removing <@>
-
-        /* // Check to see if the server's whitelist exists
-        var ServerWhitelistFilePath = "./ServerWhitelists/"+newMember.guild.id+".json";
-        if (!fs.existsSync(ServerWhitelistFilePath)){
-            await InitialiseNewServer(ServerWhitelistFilePath, newMember);
-        }else{
-            // Server whitelist exists.
-            var serverWhitelist = require(ServerWhitelistFilePath);
-        } */
-        
-        // Check to see if the whitelist is empty.. if it is just return...
-
-
-        //var serverWhitelist = require("./ServerWhitelists/"+newMember.guild.id+".json")
-
-
-
-        // Is it in the whitelist?
-        // Create the role
-        // Create the categories if the admin says thats ok.
-
-        
+        }       
     }
 });
 
