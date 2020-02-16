@@ -179,6 +179,21 @@ bot.on('message', async(message) => {
             return;
         case '!gmhelp':
             message.reply("Help has not been implemented yet. Coming soon.")
+            break;
+        case '!gmsettings':
+            console.log("yep")
+            if (args.length == 1){
+                message.reply("Incorrect use of the command. Please use the add command in the form !gm add [Game Name] [Role Name]. Use @RoleName if the role already exists on the server, or no @ if it doesnt exist.");
+                return;
+            }
+            // Use case: !gmsettings [Setting to change] [On/Off]
+
+            // Does the user have the manage channels permission?
+            if (message.member.hasPermission(['MANAGE_CHANNELS'])){
+                var newSettingValue = args.pop();
+                var settingToChange = args.pop();
+                ChangeSettings(settingToChange, newSettingValue, message.member.guild);
+            }
     }
 })
 
@@ -213,6 +228,21 @@ async function AddRoleToWhitelist(message,args){
     console.log("Added game to whitelist.");
 }
 
+async function ChangeSettings(settingToChange, newSettingValue, guild){
+    var newValue;
+    newSettingValue = newSettingValue.toLowerCase();
+    if (newSettingValue == "on"){newValue = true;}
+    else{newValue = false;}
+
+    var serverSettingsPath = `./ServerSettings/${guild.id}.json`
+    var serverSettings = await require(serverSettingsPath);
+    serverSettings["doCreateCategories"] = newValue;
+
+    jsonfile.writeFile(serverSettingsPath, serverSettings, { spaces: 2, EOL: '\r\n' }, function(err){
+        if(err) throw(err);
+    });
+}
+
 function OnJoinSettings(guild){
     let messageContent = `Hello! :smile:
     Salazhar (this bot's creator) thanks you for adding **${botName}** to ${guild.name}!
@@ -222,16 +252,12 @@ function OnJoinSettings(guild){
     Would you like the bot to create categories and channels for each game it assigns roles for?
     As an example when a user begins playing Battlefield 5 for example, the bot will create a new Category in your server called "Battlefield 5" which will contain both a text and voice channel for Battlefield 5.
     This means that only users with the Battlefield 5 role (people who play Battlefield 5) will see this category.\n
-    Would you like this feature in your server? Reply YES or NO.`
-
-    var test = guild.channels;
-    //test.send("test message.");
-
-    console.log(test);
+    
+    If you would like this setting on for your server. Please type "!gmsettings CategoryCreate On" in your server.
+    This setting can be turned off at any time using "!gmsettings CategoryCreate Off"`
 
     // Send the message to the server owner.
     guild.owner.send(messageContent);
-
 }
 
 // Create role and create voice and text channels for it. (May want to seperate this into two seperate functions. One for creating role and another for creating the text and voice stuff.)
