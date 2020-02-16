@@ -165,7 +165,7 @@ bot.on('message', async(message) => {
         case '!gmadd':
             // User only entered 'add' as a command and nothing else.
             if (args.length == 1){
-                message.reply("Incorrect use of the command. Please use the add command in the form !gm add [Game Name] [Role Name]. Use @RoleName if the role already exists on the server, or no @ if it doesnt exist.");
+                message.reply("Incorrect use of the command. Please use the add command in the form !gmadd [Game Name] [Role Name]. Use @RoleName if the role already exists on the server, or no @ if it doesnt exist.");
                 return;
             }
             // Use case: !gm ['Game Name'] ['RoleName' OR @roleName]
@@ -181,18 +181,24 @@ bot.on('message', async(message) => {
             message.reply("Help has not been implemented yet. Coming soon.")
             break;
         case '!gmsettings':
-            console.log("yep")
             if (args.length == 1){
-                message.reply("Incorrect use of the command. Please use the add command in the form !gm add [Game Name] [Role Name]. Use @RoleName if the role already exists on the server, or no @ if it doesnt exist.");
+                message.reply("Incorrect use of the command. Please use the add command in the form !gmsettings [Setting to change] [On/Off].");
                 return;
             }
             // Use case: !gmsettings [Setting to change] [On/Off]
 
-            // Does the user have the manage channels permission?
-            if (message.member.hasPermission(['MANAGE_CHANNELS'])){
-                var newSettingValue = args.pop();
-                var settingToChange = args.pop();
-                ChangeSettings(settingToChange, newSettingValue, message.member.guild);
+            var newSettingValue = args.pop().toLowerCase();
+            var settingToChange = args.pop().toLowerCase();
+
+
+            if (settingToChange == "categorycreate"){
+                // Does the user have the manage channels permission?
+                if (message.member.hasPermission(['MANAGE_CHANNELS'])){
+                    ChangeSetting(settingToChange, newSettingValue, message.member.guild);
+                    message.channel.send("Setting updated.")
+                }
+            }else{
+                message.reply(`Invalid use of the command. ${settingToChange} is not a setting that can be changed.`)
             }
     }
 })
@@ -204,11 +210,12 @@ async function AddRoleToWhitelist(message,args){
     var roleName;
     if (message.mentions.roles.first()){
         roleToAdd = message.mentions.roles.first().id;
-        roleName = message.mentions.roles.first();
+        roleName = message.mentions.roles.first().name;
         args.pop();
     }
     else{
         roleToAdd = args.pop();
+        roleName = roleToAdd;
     }
     
     //console.log(message.mentions.roles.first().name);
@@ -224,13 +231,13 @@ async function AddRoleToWhitelist(message,args){
         if(err) throw(err);
     });
 
-    message.reply(gameName+" added to whitelist with role: "+roleName);
+    message.channel.send(`**${gameName}** added to whitelist with role: **${roleName}**`);
     console.log("Added game to whitelist.");
 }
 
-async function ChangeSettings(settingToChange, newSettingValue, guild){
+async function ChangeSetting(settingToChange, newSettingValue, guild){
     var newValue;
-    newSettingValue = newSettingValue.toLowerCase();
+    newSettingValue = newSettingValue;
     if (newSettingValue == "on"){newValue = true;}
     else{newValue = false;}
 
@@ -244,14 +251,15 @@ async function ChangeSettings(settingToChange, newSettingValue, guild){
 }
 
 function OnJoinSettings(guild){
-    let messageContent = `Hello! :smile:
-    Salazhar (this bot's creator) thanks you for adding **${botName}** to ${guild.name}!
+    let messageContent = `
+    Hello! :smile:
+    Salazhar (this bot's creator) thanks you for adding **${botName}** to ***${guild.name}***!
     Should you need help using the bot type !gmhelp in your server.
     Before the bot is fully working there are a few settings it needs to confirm with you first.
 
-    Would you like the bot to create categories and channels for each game it assigns roles for?
-    As an example when a user begins playing Battlefield 5 for example, the bot will create a new Category in your server called "Battlefield 5" which will contain both a text and voice channel for Battlefield 5.
-    This means that only users with the Battlefield 5 role (people who play Battlefield 5) will see this category.\n
+    1.  Would you like the bot to create categories and channels for each game it assigns roles for?
+        As an example when a user begins playing Battlefield 5 for example, the bot will create a new Category in your server called "Battlefield 5" which will contain both a text and voice channel for Battlefield 5.
+        This means that only users with the Battlefield 5 role (people who play Battlefield 5) will see this category.
     
     If you would like this setting on for your server. Please type "!gmsettings CategoryCreate On" in your server.
     This setting can be turned off at any time using "!gmsettings CategoryCreate Off"`
@@ -281,7 +289,7 @@ async function InitialiseNewServer(ServerWhitelistFilePath, guild){
     });
 
     // Setup new server settings
-    var newServerSettingsObj = {"OwnerID": guild.owner.id, "doCreateCategories": false}
+    var newServerSettingsObj = {"OwnerID": guild.owner.id, "doCreateCategories": false};
 
     var ServerSettingsPath = "./ServerSettings/"+guild.id+".json";
     jsonfile.writeFile(ServerSettingsPath, newServerSettingsObj, { spaces: 2, EOL: '\r\n' }, function(err){
@@ -292,12 +300,19 @@ async function InitialiseNewServer(ServerWhitelistFilePath, guild){
 }
 
 function DeleteServerRecords(guild){
-    var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    var serverWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    var serverSettingsPath = `./ServerSettings/${guild.id}.json`;
 
     // Delete the whitelist used by the server.
-    fs.unlink(ServerWhitelistFilePath, function(err) {
+    fs.unlink(serverWhitelistFilePath, function(err) {
         if (err) throw err;
-    console.log(guild.name + " whitelist removed.")
+    console.log(`${guild.name}whitelist removed.`);
+    });
+
+    // Delete the settings used by the server.
+    fs.unlink(serverSettingsPath, function(err) {
+        if (err) throw err;
+    console.log(`${guild.name} settings removed.`);
     });
 
     var listOfServersJSON = "./ListOfServers.json";
