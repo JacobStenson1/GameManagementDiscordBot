@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const jsonfile = require('jsonfile');
 const fs = require('fs');
 
-const {prefix, token} = require('./config.json');
+const {prefix, token, botName} = require('./config.json');
 
 const bot = new Discord.Client();
 
@@ -35,14 +35,17 @@ bot.on('ready', async() => {
 // Called when bot is added to a new server.
 bot.on('guildCreate', async(guild) => {
     console.log("Bot was added to a new server.")
-    var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
-    await InitialiseNewServer(ServerWhitelistFilePath, guild);
+    //var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    //await InitialiseNewServer(ServerWhitelistFilePath, guild);
 
     // Check to see if the server's whitelist exists. (This is basically a check to see if the bot has been added to this server before)
     var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
     if (!fs.existsSync(ServerWhitelistFilePath)){
         await InitialiseNewServer(ServerWhitelistFilePath, guild);
     }
+
+    //Call OnJoinSettings() function.
+    OnJoinSettings(guild);
 
     UpdatePresence();
 });
@@ -56,6 +59,8 @@ bot.on('guildDelete', async(guild) => {
         if (err) throw err;
     console.log(guild.name + " whitelist removed.")
     })
+
+    UpdatePresence();
 });
 
 
@@ -64,7 +69,7 @@ bot.on('guildDelete', async(guild) => {
 bot.on('presenceUpdate', async(oldMember, newMember) => {
     if(oldMember.presence.game !== newMember.presence.game){
         // Return out if presence is spotify or if member is a bot or if the presence is now nothing.
-        if((newMember.presence.game == "Spotify") || (newMember.bot) || (newMember.presence.game == null)){ return; }
+        if((newMember.presence.game == "Spotify") || (newMember.bot) || (newMember.presence.game == null)){ OnJoinSettings(newMember.guild); return; }
 
         console.log(`${newMember.displayName}'s in ${newMember.guild.name} presence changed.`);
 
@@ -134,7 +139,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
             await newVoiceChannel.lockPermissions();
 
             // Create text channel for game.
-            var newtTextChannel = await newMember.guild.createChannel(`${gameUserIsPlaying} Text Channel`, {type: "text"});
+            var newtTextChannel = await newMember.guild.createChannel(`${gameUserIsPlaying} Text`, {type: "text"});
             await newtTextChannel.setParent(newCategory);
             await newtTextChannel.lockPermissions();
 
@@ -233,6 +238,22 @@ async function AddRoleToWhitelist(message,args){
     console.log("Added game to whitelist.");
 }
 
+function OnJoinSettings(guild){
+    let messageContent = `Hello! :smile:
+    Salazhar (the bot creator) thanks you for adding **${botName}** to your server!
+    Use !gmhelp in your server should you need help with the bot.
+    Before the bot is fully working there are a few settings it needs to confirm with you first.
+
+    Would you like the bot to create categories and channels for each game it assigns roles for?
+    As an example when a user begins playing Battlefield 5 for example, the bot will create a new Category in your server called "Battlefield 5" which will contain both a text and voice channel for Battlefield 5.
+    This means that only users with the Battlefield 5 role (people who play Battlefield 5) will see this category.\n
+    Would you like this feature in your server? Reply YES or NO.`
+
+    // Send the message to the server owner.
+    guild.owner.send(messageContent);
+
+}
+
 // Create role and create voice and text channels for it. (May want to seperate this into two seperate functions. One for creating role and another for creating the text and voice stuff.)
 function CreateRoleTextVoiceChannel(){
 
@@ -243,6 +264,16 @@ async function InitialiseNewServer(ServerWhitelistFilePath, guild){
     jsonfile.writeFile(ServerWhitelistFilePath, emptyObj, function(err){
         if(err) throw(err);
     });
+
+    var listOfServersJSON = "./ListOfServers.json";
+    var newServerObj = require(listOfServersJSON);
+    
+    newServerObj[guild.name] = guild.id;
+
+    jsonfile.writeFile(listOfServersJSON, newServerObj, function(err){
+        if(err) throw(err);
+    });
+
     var serverNameContent = guild.name + " - " + guild.id+"\n"
     fs.appendFile('ListOfServers.txt', serverNameContent, function (err) {
         if (err) throw err;
