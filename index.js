@@ -261,7 +261,7 @@ function CreateRoleTextVoiceChannel(){
 
 async function InitialiseNewServer(ServerWhitelistFilePath, guild){
     var emptyObj = {}
-    jsonfile.writeFile(ServerWhitelistFilePath, emptyObj, function(err){
+    jsonfile.writeFile(ServerWhitelistFilePath, emptyObj, { spaces: 2, EOL: '\r\n' }, function(err){
         if(err) throw(err);
     });
 
@@ -270,7 +270,7 @@ async function InitialiseNewServer(ServerWhitelistFilePath, guild){
     
     newServerObj[guild.name] = guild.id;
 
-    jsonfile.writeFile(listOfServersJSON, newServerObj, function(err){
+    jsonfile.writeFile(listOfServersJSON, newServerObj, { spaces: 2, EOL: '\r\n' }, function(err){
         if(err) throw(err);
     });
 
