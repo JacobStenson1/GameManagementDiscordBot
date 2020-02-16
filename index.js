@@ -43,7 +43,7 @@ bot.on('guildCreate', async(guild) => {
     }
 
     //Call OnJoinSettings() function.
-    OnJoinSettings(guild);
+    OnJoinMessageSend(guild);
     UpdatePresence();
 });
 
@@ -99,48 +99,19 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 
         // If the member already has the role, return out. This is done inside a try so the code doesnt error in console.
         try{
-            if(newMember.roles.has(roleToAddToMember.id)){return;}
+            if(newMember.roles.has(roleToAddToMember)){return;}
         }catch{}
         
         // Give the member the role.
-        newMember.addRole(roleToAddToMember);
+        await newMember.addRole(roleToAddToMember);
 
         console.log(`Added role: ${roleToAddToMember.name} to ${newMember.displayName}.`);
 
         // if admin has catgegory creation on then create the role category here, based on the game.
 
-        if (!serverSettings.doCreateCategories){console.log("Dont create categories"); return;}
+        if (!serverSettings.categorycreate){console.log("Dont create categories"); return;}
 
-        // Does the category we are going to create already exist?
-        if(newMember.guild.channels.find(x => x.name == gameUserIsPlaying)){ return; }
-
-        // Create category.
-        var newCategory = await newMember.guild.createChannel(gameUserIsPlaying, {type: "category"});
-        // Disallow Everyone to see, join, invite, or speak. Only allow people with the game's role to join.
-        newCategory.overwritePermissions(newMember.guild.defaultRole, {
-            'CREATE_INSTANT_INVITE' : false,        'VIEW_CHANNEL': false,
-            'CONNECT': false,                       'SPEAK': false
-        });
-
-        newCategory.overwritePermissions(roleToAddToMember, {
-            'CREATE_INSTANT_INVITE' : false,        'VIEW_CHANNEL': true,
-            'CONNECT': true,                       'SPEAK': true
-        });
-        
-
-        // Create voice channel for game.
-        var newVoiceChannel = await newMember.guild.createChannel(`${gameUserIsPlaying} Voice`, {type: "voice"});
-        await newVoiceChannel.setParent(newCategory);
-        await newVoiceChannel.lockPermissions();
-
-        // Create text channel for game.
-        var newtTextChannel = await newMember.guild.createChannel(`${gameUserIsPlaying} Text`, {type: "text"});
-        await newtTextChannel.setParent(newCategory);
-        await newtTextChannel.lockPermissions();
-
-        console.log("Created category and channel.")
-        
-        console.log(newCategory.name);      
+        CreateRoleTextVoiceChannel(newMember, roleToAddToMember)
     }
 });
 
@@ -148,15 +119,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 bot.on('message', async(message) => {
     if (message.author.bot){return;}
 
-    console.log(message.content);
-
-
-
     let args = message.content.split(" ");
-    //args.shift();
-    
-    /* console.log("here")
-    console.log(args) */
 
     switch(args[0]){
         case '!gmtest':
@@ -190,12 +153,13 @@ bot.on('message', async(message) => {
             var newSettingValue = args.pop().toLowerCase();
             var settingToChange = args.pop().toLowerCase();
 
+            if (newSettingValue != "on" && newSettingValue != "off"){message.reply("Please use ON or OFF for a new setting value.")}
 
             if (settingToChange == "categorycreate"){
                 // Does the user have the manage channels permission?
                 if (message.member.hasPermission(['MANAGE_CHANNELS'])){
-                    ChangeSetting(settingToChange, newSettingValue, message.member.guild);
-                    message.channel.send("Setting updated.")
+                    ChangeSetting(settingToChange, newSettingValue, message);
+                    message.channel.send("Setting changed.");
                 }
             }else{
                 message.reply(`Invalid use of the command. ${settingToChange} is not a setting that can be changed.`)
@@ -235,22 +199,23 @@ async function AddRoleToWhitelist(message,args){
     console.log("Added game to whitelist.");
 }
 
-async function ChangeSetting(settingToChange, newSettingValue, guild){
+async function ChangeSetting(settingToChange, newSettingValue, message){
     var newValue;
-    newSettingValue = newSettingValue;
     if (newSettingValue == "on"){newValue = true;}
-    else{newValue = false;}
+    else if(newSettingValue == "off"){
+        newValue = false;
+    }
 
-    var serverSettingsPath = `./ServerSettings/${guild.id}.json`
+    var serverSettingsPath = `./ServerSettings/${message.member.guild.id}.json`
     var serverSettings = await require(serverSettingsPath);
-    serverSettings["doCreateCategories"] = newValue;
+    serverSettings[settingToChange] = newValue;
 
     jsonfile.writeFile(serverSettingsPath, serverSettings, { spaces: 2, EOL: '\r\n' }, function(err){
         if(err) throw(err);
     });
 }
 
-function OnJoinSettings(guild){
+function OnJoinMessageSend(guild){
     let messageContent = `
     Hello! :smile:
     Salazhar (this bot's creator) thanks you for adding **${botName}** to ***${guild.name}***!
@@ -260,17 +225,49 @@ function OnJoinSettings(guild){
     1.  Would you like the bot to create categories and channels for each game it assigns roles for?
         As an example when a user begins playing Battlefield 5 for example, the bot will create a new Category in your server called "Battlefield 5" which will contain both a text and voice channel for Battlefield 5.
         This means that only users with the Battlefield 5 role (people who play Battlefield 5) will see this category.
+        The category will be named after the game and not the role.
     
     If you would like this setting on for your server. Please type "!gmsettings CategoryCreate On" in your server.
-    This setting can be turned off at any time using "!gmsettings CategoryCreate Off"`
+    This setting can be turned off at any time using "!gmsettings CategoryCreate Off"
+    By default this setting is OFF.`
 
     // Send the message to the server owner.
     guild.owner.send(messageContent);
+
+    console.log(`Owner of ${guild.name} has been messaged.`)
 }
 
 // Create role and create voice and text channels for it. (May want to seperate this into two seperate functions. One for creating role and another for creating the text and voice stuff.)
-function CreateRoleTextVoiceChannel(){
+async function CreateRoleTextVoiceChannel(newMember, roleToAddToMember){
+    var gameUserIsPlaying = newMember.presence.game.name
+    // Does the category we are going to create already exist?
+    if(newMember.guild.channels.find(x => x.name == gameUserIsPlaying)){ return; }
 
+    // Create category.
+    var newCategory = await newMember.guild.createChannel(gameUserIsPlaying, {type: "category"});
+    // Disallow Everyone to see, join, invite, or speak. Only allow people with the game's role to join.
+    newCategory.overwritePermissions(newMember.guild.defaultRole, {
+        'CREATE_INSTANT_INVITE' : false,        'VIEW_CHANNEL': false,
+        'CONNECT': false,                       'SPEAK': false
+    });
+
+    newCategory.overwritePermissions(roleToAddToMember, {
+        'CREATE_INSTANT_INVITE' : false,        'VIEW_CHANNEL': true,
+        'CONNECT': true,                       'SPEAK': true
+    });
+    
+
+    // Create voice channel for game.
+    var newVoiceChannel = await newMember.guild.createChannel(`${gameUserIsPlaying} Voice`, {type: "voice"});
+    await newVoiceChannel.setParent(newCategory);
+    await newVoiceChannel.lockPermissions();
+
+    // Create text channel for game.
+    var newtTextChannel = await newMember.guild.createChannel(`${gameUserIsPlaying} Text`, {type: "text"});
+    await newtTextChannel.setParent(newCategory);
+    await newtTextChannel.lockPermissions();
+
+    console.log("Created category and channel.")
 }
 
 async function InitialiseNewServer(ServerWhitelistFilePath, guild){
@@ -289,7 +286,7 @@ async function InitialiseNewServer(ServerWhitelistFilePath, guild){
     });
 
     // Setup new server settings
-    var newServerSettingsObj = {"OwnerID": guild.owner.id, "doCreateCategories": false};
+    var newServerSettingsObj = {"OwnerID": guild.owner.id, "categorycreate": false};
 
     var ServerSettingsPath = "./ServerSettings/"+guild.id+".json";
     jsonfile.writeFile(ServerSettingsPath, newServerSettingsObj, { spaces: 2, EOL: '\r\n' }, function(err){
