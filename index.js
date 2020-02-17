@@ -343,9 +343,11 @@ async function CreateRoleTextVoiceChannel(newMember, roleToAddToMember){
 }
 
 async function InitialiseNewServer(ServerWhitelistFilePath, guild){
+    // Setting up new whitelist.
     var emptyObj = {}
     UpdateJsonFile(ServerWhitelistFilePath, emptyObj);
 
+    // Add new server to list of servers.
     var listOfServersJSON = "./ListOfServers.json";
     var newServerObj = require(listOfServersJSON);
     
@@ -353,12 +355,15 @@ async function InitialiseNewServer(ServerWhitelistFilePath, guild){
 
     UpdateJsonFile(listOfServersJSON, newServerObj);
 
-    // Setup new server settings
+    // Setup new server settings.
     var newServerSettingsObj = {"OwnerID": guild.owner.id, "createcategory": false};
 
     var serverSettingsPath = "./ServerSettings/"+guild.id+".json";
 
-    UpdateJsonFile(serverSettingsPath, newServerSettingsObj)
+    UpdateJsonFile(serverSettingsPath, newServerSettingsObj);
+
+    // Server statistics.
+
 
     console.log("Added server: "+ guild.name +" to records.");  
 }
