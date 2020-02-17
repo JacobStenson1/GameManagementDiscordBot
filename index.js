@@ -63,6 +63,12 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         // Return out if presence is spotify or if member is a bot or if the presence is now nothing.
         if((newMember.presence.game == "Spotify") || (newMember.bot) || (newMember.presence.game == null)){ return; }
 
+        // TRACK EVENT (game opened)
+        //  (how many times has Battlefield 5 been opened for example)
+        // Games opened in past day
+        // Games opened in past week
+        // Games opened in past month
+
         console.log("\n")
 
         console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
@@ -104,6 +110,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         
         // Give the member the role.
         await newMember.addRole(roleToAddToMember);
+        //-- TRACK EVENT
 
         console.log(`Added role: ${roleToAddToMember.name} to ${newMember.displayName}.`);
 
