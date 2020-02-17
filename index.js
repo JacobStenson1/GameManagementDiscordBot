@@ -109,7 +109,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 
         // if admin has catgegory creation on then create the role category here, based on the game.
 
-        if (!serverSettings.categorycreate){console.log("Dont create categories"); return;}
+        if (!serverSettings.createcategory){console.log("Dont create categories"); return;}
 
         CreateRoleTextVoiceChannel(newMember, roleToAddToMember)
     }
@@ -124,7 +124,7 @@ bot.on('message', async(message) => {
     switch(args[0]){
         case '!gmtest':
             message.channel.send("Bot is running!");
-            return;
+            break;
         case '!gmadd':
             // User only entered 'add' as a command and nothing else.
             if (args.length == 1){
@@ -135,13 +135,51 @@ bot.on('message', async(message) => {
 
             // Does user have manage roles permission?
             if (message.member.hasPermission(['MANAGE_ROLES'])){
-                AddRoleToWhitelist(message,args);
+                var roleToAdd;
+                var roleName;
+                if (message.mentions.roles.first()){
+                    roleToAdd = message.mentions.roles.first().id;
+                    roleName = message.mentions.roles.first().name;
+                    args.pop();
+                }
+                else{
+                    roleToAdd = args.pop();
+                    roleName = roleToAdd;
+                }
+                var gameName = args.slice(1,args.length).join(" ").toString();
+
+                AddRoleToWhitelist(message,gameName,roleName,roleToAdd);
 
             }else{ message.reply("You do not have permission to use that command."); }
 
-            return;
-        case '!gmhelp':
-            message.reply("Help has not been implemented yet. Coming soon.")
+            break;
+        case '!gmaddmygame':
+            if (args.length == 1){
+                message.reply("Incorrect use of the command. Please use the addmygame command in the form !addmygame [Desired role for game].");
+                return;
+            }
+
+            // If the author of the command is not playing a game.
+            if (!message.author.presence.game){message.reply("You are not playing a game.");}
+
+            if (message.member.hasPermission(['MANAGE_ROLES'])){
+                var roleToAdd;
+                var roleName;
+                if (message.mentions.roles.first()){
+                    roleToAdd = message.mentions.roles.first().id;
+                    roleName = message.mentions.roles.first().name;
+                    args.pop();
+                }
+                else{
+                    roleToAdd = args.pop();
+                    roleName = roleToAdd;
+                }
+                var gameName = args.slice(1,args.length).join(" ").toString();
+
+                AddRoleToWhitelist(message, message.author.presence.game.name, roleName, roleToAdd);
+
+            }else{ message.reply("You do not have permission to use that command."); }
+
             break;
         case '!gmsettings':
             if (args.length == 1){
@@ -155,7 +193,7 @@ bot.on('message', async(message) => {
 
             if (newSettingValue != "on" && newSettingValue != "off"){message.reply("Please use ON or OFF for a new setting value.")}
 
-            if (settingToChange == "categorycreate"){
+            if (settingToChange == "createcategory"){
                 // Does the user have the manage channels permission?
                 if (message.member.hasPermission(['MANAGE_CHANNELS'])){
                     ChangeSetting(settingToChange, newSettingValue, message);
@@ -164,13 +202,17 @@ bot.on('message', async(message) => {
             }else{
                 message.reply(`Invalid use of the command. ${settingToChange} is not a setting that can be changed.`)
             }
+            break;
+        case '!gmhelp':
+            message.reply("Help has not been implemented yet. Coming soon.")
+            break;
     }
 })
 
-// Functions below ---
+// ------ Functions below ------
 
-async function AddRoleToWhitelist(message,args){
-    var roleToAdd;
+async function AddRoleToWhitelist(message,gameName,roleName,roleToAdd){
+    /* var roleToAdd;
     var roleName;
     if (message.mentions.roles.first()){
         roleToAdd = message.mentions.roles.first().id;
@@ -183,7 +225,7 @@ async function AddRoleToWhitelist(message,args){
     }
     
     //console.log(message.mentions.roles.first().name);
-    var gameName = args.slice(1,args.length).join(" ").toString();
+    var gameName = args.slice(1,args.length).join(" ").toString(); */
 
     var guild = message.guild;
     var serverWhitelistFile = "./ServerWhitelists/"+guild.id+".json";
@@ -227,8 +269,8 @@ function OnJoinMessageSend(guild){
         This means that only users with the Battlefield 5 role (people who play Battlefield 5) will see this category.
         The category will be named after the game and not the role.
     
-    If you would like this setting on for your server. Please type "!gmsettings CategoryCreate On" in your server.
-    This setting can be turned off at any time using "!gmsettings CategoryCreate Off"
+    If you would like this setting on for your server. Please type "!gmsettings CreateCategory On" in your server.
+    This setting can be turned off at any time using "!gmsettings CreateCategory Off"
     By default this setting is OFF.`
 
     // Send the message to the server owner.
@@ -286,7 +328,7 @@ async function InitialiseNewServer(ServerWhitelistFilePath, guild){
     });
 
     // Setup new server settings
-    var newServerSettingsObj = {"OwnerID": guild.owner.id, "categorycreate": false};
+    var newServerSettingsObj = {"OwnerID": guild.owner.id, "createcategory": false};
 
     var ServerSettingsPath = "./ServerSettings/"+guild.id+".json";
     jsonfile.writeFile(ServerSettingsPath, newServerSettingsObj, { spaces: 2, EOL: '\r\n' }, function(err){
