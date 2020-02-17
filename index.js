@@ -125,6 +125,7 @@ bot.on('message', async(message) => {
         case '!gmtest':
             message.channel.send("Bot is running!");
             break;
+
         case '!gmadd':
             // User only entered 'add' as a command and nothing else.
             if (args.length == 1){
@@ -153,9 +154,10 @@ bot.on('message', async(message) => {
             }else{ message.reply("You do not have permission to use that command."); }
 
             break;
+
         case '!gmaddmygame':
             if (args.length == 1){
-                message.reply("Incorrect use of the command. Please use the addmygame command in the form !addmygame [Desired role for game].");
+                message.reply("Incorrect use of the command. Please use the addmygame command in the form !addmygame [Desired Role].");
                 return;
             }
 
@@ -181,6 +183,45 @@ bot.on('message', async(message) => {
             }else{ message.reply("You do not have permission to use that command."); }
 
             break;
+
+        case '!gmdelete':
+            //message.reply("Delete a game and role not implemented yet.")
+            
+            if (args.length == 1){
+                message.reply("Incorrect use of the command. Please use the addmygame command in the form !gmdelete [Game] [Role].");
+                return;
+            }
+
+            var roleToRemove;
+            var roleName;
+            if (message.mentions.roles.first()){
+                roleToRemove = message.mentions.roles.first().id;
+                roleName = message.mentions.roles.first().name;
+                args.pop();
+            }
+            else{
+                roleToRemove = args.pop();
+                roleName = roleToRemove;
+            }
+
+            var gameToDelete = args.slice(1,args.length).join(" ").toString();
+            var serverWhitelistPath = `./ServerWhitelists/${message.guild.id}.json`;
+            var serverWhitelist = require(serverWhitelistPath);
+
+            // Delete from the whitelist.
+            delete serverWhitelist[gameToDelete];
+
+            // Rewrite the updated whitelist to it's file.
+            UpdateJsonFile(serverWhitelistPath, serverWhitelist);
+
+            message.channel.send(`**${gameToDelete}** with role **${roleName}** deleted`)
+
+            break;
+
+        case '!gmgames':
+            message.reply("Games list not implemented yet.")
+            break;
+
         case '!gmsettings':
             if (args.length == 1){
                 message.reply("Incorrect use of the command. Please use the add command in the form !gmsettings [Setting to change] [On/Off].");
@@ -203,39 +244,23 @@ bot.on('message', async(message) => {
                 message.reply(`Invalid use of the command. ${settingToChange} is not a setting that can be changed.`)
             }
             break;
+
         case '!gmhelp':
             message.reply("Help has not been implemented yet. Coming soon.")
             break;
     }
-})
+});
 
 // ------ Functions below ------
 
 async function AddRoleToWhitelist(message,gameName,roleName,roleToAdd){
-    /* var roleToAdd;
-    var roleName;
-    if (message.mentions.roles.first()){
-        roleToAdd = message.mentions.roles.first().id;
-        roleName = message.mentions.roles.first().name;
-        args.pop();
-    }
-    else{
-        roleToAdd = args.pop();
-        roleName = roleToAdd;
-    }
-    
-    //console.log(message.mentions.roles.first().name);
-    var gameName = args.slice(1,args.length).join(" ").toString(); */
-
     var guild = message.guild;
-    var serverWhitelistFile = "./ServerWhitelists/"+guild.id+".json";
-    var whiteListJson = await require(serverWhitelistFile);
+    var serverWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    var whiteListJson = await require(serverWhitelistFilePath);
 
     whiteListJson[gameName] = roleToAdd;
 
-    jsonfile.writeFile(serverWhitelistFile, whiteListJson, { spaces: 2, EOL: '\r\n' }, function(err){
-        if(err) throw(err);
-    });
+    UpdateJsonFile(serverWhitelistFilePath, whiteListJson);
 
     message.channel.send(`**${gameName}** added to whitelist with role: **${roleName}**`);
     console.log("Added game to whitelist.");
@@ -252,12 +277,10 @@ async function ChangeSetting(settingToChange, newSettingValue, message){
     var serverSettings = await require(serverSettingsPath);
     serverSettings[settingToChange] = newValue;
 
-    jsonfile.writeFile(serverSettingsPath, serverSettings, { spaces: 2, EOL: '\r\n' }, function(err){
-        if(err) throw(err);
-    });
+    UpdateJsonFile(serverSettingsPath, serverSettings);
 }
 
-function OnJoinMessageSend(guild){
+async function OnJoinMessageSend(guild){
     let messageContent = `
     Hello! :smile:
     Salazhar (this bot's creator) thanks you for adding **${botName}** to ***${guild.name}***!
@@ -314,31 +337,26 @@ async function CreateRoleTextVoiceChannel(newMember, roleToAddToMember){
 
 async function InitialiseNewServer(ServerWhitelistFilePath, guild){
     var emptyObj = {}
-    jsonfile.writeFile(ServerWhitelistFilePath, emptyObj, { spaces: 2, EOL: '\r\n' }, function(err){
-        if(err) throw(err);
-    });
+    UpdateJsonFile(ServerWhitelistFilePath, emptyObj);
 
     var listOfServersJSON = "./ListOfServers.json";
     var newServerObj = require(listOfServersJSON);
     
     newServerObj[guild.name] = guild.id;
 
-    jsonfile.writeFile(listOfServersJSON, newServerObj, { spaces: 2, EOL: '\r\n' }, function(err){
-        if(err) throw(err);
-    });
+    UpdateJsonFile(listOfServersJSON, newServerObj);
 
     // Setup new server settings
     var newServerSettingsObj = {"OwnerID": guild.owner.id, "createcategory": false};
 
-    var ServerSettingsPath = "./ServerSettings/"+guild.id+".json";
-    jsonfile.writeFile(ServerSettingsPath, newServerSettingsObj, { spaces: 2, EOL: '\r\n' }, function(err){
-        if(err) throw(err);
-    });
+    var serverSettingsPath = "./ServerSettings/"+guild.id+".json";
+
+    UpdateJsonFile(serverSettingsPath, newServerSettingsObj)
 
     console.log("Added server: "+ guild.name +" to records.");  
 }
 
-function DeleteServerRecords(guild){
+async function DeleteServerRecords(guild){
     var serverWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
     var serverSettingsPath = `./ServerSettings/${guild.id}.json`;
 
@@ -360,14 +378,18 @@ function DeleteServerRecords(guild){
     // Delete the server from the ListOfServers.json file.
     delete newServerObj[guild.name];
 
-    jsonfile.writeFile(listOfServersJSON, newServerObj, { spaces: 2, EOL: '\r\n' }, function(err){
-        if(err) throw(err);
-    });
+    UpdateJsonFile(listOfServersJSON, newServerObj);
 }
 
 // Update the presence to display total servers the bot is in.
 async function UpdatePresence(){
     bot.user.setPresence({ game: { name: "!gmhelp - Adding Roles In "+bot.guilds.size+" Servers!", type: 0 } });
+}
+
+async function UpdateJsonFile(filePath, content){
+    await jsonfile.writeFile(filePath, content, { spaces: 2, EOL: '\r\n' }, function(err){
+        if(err) throw(err);
+    });
 }
 
 bot.login(token);
