@@ -42,6 +42,11 @@ bot.on('guildDelete', async(guild) => {
 });
 
 
+// --------------------------------------
+//
+//            PRESENCE UPDATE
+//
+// --------------------------------------
 
 // When a user's presence updates.
 bot.on('presenceUpdate', async(oldMember, newMember) => {
@@ -74,7 +79,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         console.log(`The game they are now playing is: ${gameNameUserIsPlaying}`);
         console.log(`Is their game in the server's whitelist? ${gameNameUserIsPlaying in serverWhitelist}`);
 
-        // Is the game the user is playing in the whitelist?
+        // Is the game the user is playing in the whitelist? If it isn't do not continue.
         if (!(gameNameUserIsPlaying in serverWhitelist)){ return; }
 
         // If the search by ID netted results.
@@ -95,11 +100,12 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 
         // If the member already has the role, return out. This is done inside a try so the code doesnt error in console.
         try{
-            if(newMember.roles.has(roleToAddToMember)){return;}
+            if(newMember.roles.has(roleToAddToMember.id)){return;}
         }catch{}
-        
+
         // Give the member the role.
         await newMember.addRole(roleToAddToMember);
+        RecordRoleAdd(roleToAddToMember,serverStatisticsFilePath)
         //-- TRACK EVENT
 
         console.log(`Added role: ${roleToAddToMember.name} to ${newMember.displayName}.`);
@@ -111,6 +117,15 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         CreateRoleTextVoiceChannel(newMember, roleToAddToMember)
     }
 });
+
+
+
+// --------------------------------------
+//
+//              COMMANDS
+//
+// --------------------------------------
+
 
 // When a message is sent to the server.
 bot.on('message', async(message) => {
@@ -252,7 +267,11 @@ bot.on('message', async(message) => {
     }
 });
 
-// ------ Functions below ------
+// --------------------------------------
+//
+//              FUNCTIONS
+//
+// --------------------------------------
 
 async function AddRoleToWhitelist(message,gameName,roleName,roleToAdd){
     var guild = message.guild;
@@ -354,8 +373,8 @@ async function InitialiseNewServer(guild){
     var emptyObj = {"Total times games opened":{},
                     "Number of times roles added to users":{}
                 }
-    var ServerStatisticsFilePath = `./Servers/${guild.id}/statistics.json`;
-    UpdateJsonFile(ServerStatisticsFilePath, emptyObj);
+    var serverStatisticsFilePath = `./Servers/${guild.id}/statistics.json`;
+    UpdateJsonFile(serverStatisticsFilePath, emptyObj);
 
     // Add new server to list of servers.
     var listOfServersJSON = "./ListOfServers.json";
@@ -393,6 +412,20 @@ async function RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath){
     }
     
     serverStats["Total times games opened"][gameNameUserIsPlaying] += 1;
+    UpdateJsonFile(serverStatisticsFilePath, serverStats);
+}
+
+async function RecordRoleAdd(role,serverStatisticsFilePath){
+    var serverStats = require(serverStatisticsFilePath);
+
+    let section = "Number of times roles added to users";
+
+    // If a record of the role being added is not on record...
+    if (!serverStats[section][role.name]){
+        serverStats[section][role.name] = 0;
+    }
+
+    serverStats[section][role.name] += 1;
     UpdateJsonFile(serverStatisticsFilePath, serverStats);
 }
 
