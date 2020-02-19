@@ -53,7 +53,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
     // Ensure the members game has changed (some games auto update presence (game doesnt change))
     if(oldMember.presence.game != newMember.presence.game){
         // Return out if presence is spotify or if member is a bot or if the presence is now nothing.
-        if((newMember.presence.game == "Spotify") || (newMember.bot) || (newMember.presence.game == null)){ return; }
+        if((newMember.presence.game == "Spotify") || (newMember.bot)){ return; }
         console.log("\n");
         console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
 
@@ -69,6 +69,11 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 
         // Record new game open (ignores whitelist).
         RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath);
+
+        //--- newGameRecording(newMember);
+
+        // Recording done, if presence is nothing then just return out.
+        if(newMember.presence.game == null){return;}
 
         roleFromWhitelist = serverWhitelist[gameNameUserIsPlaying];
         let roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
@@ -135,7 +140,15 @@ bot.on('message', async(message) => {
 
     switch(args[0]){
         case '!gmtest':
-            message.channel.send("Bot is running!");
+            //message.channel.send("Bot is running!");
+            test1 = Date.now();
+            break;
+        case '!gmtest1':
+            //message.channel.send("Bot is running!");
+            test2 = Date.now();
+            console.log(test1);
+            console.log(test2);
+            message.reply(`test2 - test1 = ${test2-test1}`)
             break;
 
         case '!gmadd':
@@ -427,6 +440,31 @@ async function RecordRoleAdd(role,serverStatisticsFilePath){
 
     serverStats[section][role.name] += 1;
     UpdateJsonFile(serverStatisticsFilePath, serverStats);
+}
+
+async function newGameRecording(){
+    let tempRecordFilePath = `./tempRecord.json`;
+    tempGameRecord = require(tempRecordFilePath);
+
+    // If there is no record of a user...
+    if(!tempGameRecord[newMember.id]){
+        // CREATE RECORD FOR A USER.
+        // User just opened a game.
+        tempGameRecord[newMember.id]["dateGameOpen"] = "CURRENTDATEANDTIMEGOESHERE";
+        tempGameRecord[newMember.id]["gameName"] = newMember.presence.game.name;
+    }else if(tempGameRecord[newMember.id]){
+        // there is a user on record.
+        // PERMA RECORD THEIR INFORMATION ON RECORD.
+        // THEN start recording their new game.
+    }else{
+        console.log("Something went wrong.")
+    }
+    // Is their name on record?
+    //  If so then perma record what they were doing on record
+    //  Delete the record for the user.
+
+
+    
 }
 
 // Update the presence to display total servers the bot is in.
