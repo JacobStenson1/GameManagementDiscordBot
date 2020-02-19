@@ -45,9 +45,16 @@ bot.on('guildDelete', async(guild) => {
 
 // When a user's presence updates.
 bot.on('presenceUpdate', async(oldMember, newMember) => {
-    if(oldMember.presence.game !== newMember.presence.game){
+    // Ensure the members game has changed (some games auto update presence (game doesnt change))
+    if(oldMember.presence.game != newMember.presence.game){
         // Return out if presence is spotify or if member is a bot or if the presence is now nothing.
         if((newMember.presence.game == "Spotify") || (newMember.bot) || (newMember.presence.game == null)){ return; }
+        console.log("\n");
+        console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
+
+        let gameNameUserIsPlaying = newMember.presence.game.name;
+        var serverStatisticsFilePath = `./Servers/${newMember.guild.id}/statistics.json`;
+        let serverWhitelist = require(`./Servers/${newMember.guild.id}/whitelist.json`);
 
         // TRACK EVENT (game opened)
         //  (how many times has Battlefield 5 been opened for example)
@@ -55,22 +62,20 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         // Games opened in past week
         // Games opened in past month
 
-        console.log("\n")
-        console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
+        // Record new game open (ignores whitelist).
+        RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath);
 
-        let serverWhitelist = require(`./Servers/${newMember.guild.id}/whitelist.json`);
-        let gameUserIsPlaying = newMember.presence.game.name;
-        roleFromWhitelist = serverWhitelist[gameUserIsPlaying];
+        roleFromWhitelist = serverWhitelist[gameNameUserIsPlaying];
         let roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
         var roleToAddToMember;
 
         let serverSettings = require(`./Servers/${newMember.guild.id}/settings.json`);
         
-        console.log(`The game they are now playing is: ${gameUserIsPlaying}`);
-        console.log(`Is their game in the server's whitelist? ${gameUserIsPlaying in serverWhitelist}`);
+        console.log(`The game they are now playing is: ${gameNameUserIsPlaying}`);
+        console.log(`Is their game in the server's whitelist? ${gameNameUserIsPlaying in serverWhitelist}`);
 
         // Is the game the user is playing in the whitelist?
-        if (!(gameUserIsPlaying in serverWhitelist)){ return; }
+        if (!(gameNameUserIsPlaying in serverWhitelist)){ return; }
 
         // If the search by ID netted results.
         if (roleSearchByID){
@@ -214,6 +219,9 @@ bot.on('message', async(message) => {
         case '!gmgames':
             message.reply("Games list not implemented yet.")
             break;
+        case '!gmstats':
+            message.reply("stats are a WIP.");
+            break;
 
         case '!gmsettings':
             if (args.length == 1){
@@ -230,7 +238,7 @@ bot.on('message', async(message) => {
             if (settingToChange == "createcategory"){
                 // Does the user have the manage channels permission?
                 if (message.member.hasPermission(['MANAGE_CHANNELS'])){
-                    ChangeSetting(settingToChange, newSettingValue, message);
+                    UpdateSetting(settingToChange, newSettingValue, message);
                     message.channel.send(`**${settingToChange}** turned **${newSettingValue}**.`);
                 }
             }else{
@@ -260,7 +268,7 @@ async function AddRoleToWhitelist(message,gameName,roleName,roleToAdd){
     console.log("Added game to whitelist.");
 }
 
-async function ChangeSetting(settingToChange, newSettingValue, message){
+async function UpdateSetting(settingToChange, newSettingValue, message){
     var newValue;
     if (newSettingValue == "on"){newValue = true;}
     else if(newSettingValue == "off"){
@@ -299,12 +307,12 @@ async function OnJoinMessageSend(guild){
 
 // Create role and create voice and text channels for it. (May want to seperate this into two seperate functions. One for creating role and another for creating the text and voice stuff.)
 async function CreateRoleTextVoiceChannel(newMember, roleToAddToMember){
-    var gameUserIsPlaying = newMember.presence.game.name
+    var gameNameUserIsPlaying = newMember.presence.game.name
     // Does the category we are going to create already exist?
-    if(newMember.guild.channels.find(x => x.name == gameUserIsPlaying)){ return; }
+    if(newMember.guild.channels.find(x => x.name == gameNameUserIsPlaying)){ return; }
 
     // Create category.
-    var newCategory = await newMember.guild.createChannel(gameUserIsPlaying, {type: "category"});
+    var newCategory = await newMember.guild.createChannel(gameNameUserIsPlaying, {type: "category"});
     // Disallow Everyone to see, join, invite, or speak. Only allow people with the game's role to join.
     newCategory.overwritePermissions(newMember.guild.defaultRole, {
         'CREATE_INSTANT_INVITE' : false,        'VIEW_CHANNEL': false,
@@ -318,12 +326,12 @@ async function CreateRoleTextVoiceChannel(newMember, roleToAddToMember){
     
 
     // Create voice channel for game.
-    var newVoiceChannel = await newMember.guild.createChannel(`${gameUserIsPlaying} Voice`, {type: "voice"});
+    var newVoiceChannel = await newMember.guild.createChannel(`${gameNameUserIsPlaying} Voice`, {type: "voice"});
     await newVoiceChannel.setParent(newCategory);
     await newVoiceChannel.lockPermissions();
 
     // Create text channel for game.
-    var newtTextChannel = await newMember.guild.createChannel(`${gameUserIsPlaying} Text`, {type: "text"});
+    var newtTextChannel = await newMember.guild.createChannel(`${gameNameUserIsPlaying} Text`, {type: "text"});
     await newtTextChannel.setParent(newCategory);
     await newtTextChannel.lockPermissions();
 
@@ -343,7 +351,9 @@ async function InitialiseNewServer(guild){
     UpdateJsonFile(serverSettingsPath, newServerSettingsObj);
 
     // Setup new server's statistics.
-    var emptyObj = {}
+    var emptyObj = {"Total times games opened":{},
+                    "Number of times roles added to users":{}
+                }
     var ServerStatisticsFilePath = `./Servers/${guild.id}/statistics.json`;
     UpdateJsonFile(ServerStatisticsFilePath, emptyObj);
 
@@ -371,6 +381,19 @@ async function DeleteServerRecords(guild){
     delete newServerObj[guild.name];
 
     UpdateJsonFile(listOfServersJSON, newServerObj);
+}
+
+async function RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath){
+    var serverStats = require(serverStatisticsFilePath);
+
+    // If the current game being played doesnt exist in records...
+    if (!serverStats["Total times games opened"][gameNameUserIsPlaying]){
+        // Initialise new game record.
+        serverStats["Total times games opened"][gameNameUserIsPlaying] = 0;
+    }
+    
+    serverStats["Total times games opened"][gameNameUserIsPlaying] += 1;
+    UpdateJsonFile(serverStatisticsFilePath, serverStats);
 }
 
 // Update the presence to display total servers the bot is in.
