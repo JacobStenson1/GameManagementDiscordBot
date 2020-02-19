@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const jsonfile = require('jsonfile');
-const fs = require('fs');
+const fs = require('fs-extra');
 
 const {prefix, token, botName} = require('./config.json');
 
@@ -36,11 +36,23 @@ bot.on('ready', async() => {
 bot.on('guildCreate', async(guild) => {
     console.log("Bot was added to a new server.")
 
-    // Check to see if the server's whitelist exists. (This is basically a check to see if the bot has been added to this server before)
-    var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    // Check to see if the server's folder exists. (This is basically a check to see if the bot has been added to this server before)
+    //var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+
+    var serverDir = `./Servers/${guild.id}`;
+    if (!fs.existsSync(serverDir)){
+        fs.mkdirSync(serverDir);
+
+        //var ServerWhitelistFilePath = `./Servers/${guild.id}/whitelist.json`;
+        await InitialiseNewServer(guild);
+
+        console.log("Created new server directory.");
+    }
+    
+    /* var ServerWhitelistFilePath = `./Servers/${guild.id}/whitelist.json`;
     if (!fs.existsSync(ServerWhitelistFilePath)){
         await InitialiseNewServer(ServerWhitelistFilePath, guild);
-    }
+    } */
 
     //Call OnJoinSettings() function.
     OnJoinMessageSend(guild);
@@ -73,13 +85,15 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 
         console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
 
-        let serverWhitelist = require("./ServerWhitelists/"+newMember.guild.id+".json");
+        //let serverWhitelist = require("./ServerWhitelists/"+newMember.guild.id+".json");
+        let serverWhitelist = require(`./Servers/${newMember.guild.id}/whitelist.json`);
         let gameUserIsPlaying = newMember.presence.game.name;
         roleFromWhitelist = serverWhitelist[gameUserIsPlaying];
         let roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
         var roleToAddToMember;
 
-        let serverSettings = require(`./ServerSettings/${newMember.guild.id}.json`)
+        //let serverSettings = require(`./ServerSettings/${newMember.guild.id}.json`);
+        let serverSettings = require(`./Servers/${newMember.guild.id}/settings.json`);
         
         console.log(`The game they are now playing is: ${gameUserIsPlaying}`);
         console.log(`Is their game in the server's whitelist? ${gameUserIsPlaying in serverWhitelist}`);
@@ -212,7 +226,8 @@ bot.on('message', async(message) => {
             }
 
             var gameToDelete = args.slice(1,args.length).join(" ").toString();
-            var serverWhitelistPath = `./ServerWhitelists/${message.guild.id}.json`;
+            //var serverWhitelistPath = `./ServerWhitelists/${message.guild.id}.json`;
+            var serverWhitelistPath = `./Servers/${message.guild.id}/whitelist.json`;
             var serverWhitelist = require(serverWhitelistPath);
 
             // Delete from the whitelist.
@@ -262,7 +277,8 @@ bot.on('message', async(message) => {
 
 async function AddRoleToWhitelist(message,gameName,roleName,roleToAdd){
     var guild = message.guild;
-    var serverWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    //var serverWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    var serverWhitelistFilePath = `./Servers/${guild.id}/whitelist.json`;
     var whiteListJson = await require(serverWhitelistFilePath);
 
     whiteListJson[gameName] = roleToAdd;
@@ -280,7 +296,8 @@ async function ChangeSetting(settingToChange, newSettingValue, message){
         newValue = false;
     }
 
-    var serverSettingsPath = `./ServerSettings/${message.member.guild.id}.json`
+    //var serverSettingsPath = `./ServerSettings/${message.member.guild.id}.json`;
+    var serverSettingsPath = `./Servers/${message.member.guild.id}/settings.json`;
     var serverSettings = await require(serverSettingsPath);
     serverSettings[settingToChange] = newValue;
 
@@ -342,47 +359,43 @@ async function CreateRoleTextVoiceChannel(newMember, roleToAddToMember){
     console.log("Created category and channel.")
 }
 
-async function InitialiseNewServer(ServerWhitelistFilePath, guild){
-    // Setting up new whitelist.
+async function InitialiseNewServer(guild){
+
+    // Setting up new server's whitelist.
     var emptyObj = {}
+    var ServerWhitelistFilePath = `./Servers/${guild.id}/whitelist.json`;
     UpdateJsonFile(ServerWhitelistFilePath, emptyObj);
+
+    // Setup new server's settings.
+    var newServerSettingsObj = {"OwnerID": guild.owner.id, "createcategory": false};
+    var serverSettingsPath = `./Servers/${guild.id}/settings.json`;
+    UpdateJsonFile(serverSettingsPath, newServerSettingsObj);
+
+    // Setup new server's statistics.
+    var emptyObj = {}
+    var ServerStatisticsFilePath = `./Servers/${guild.id}/statistics.json`;
+    UpdateJsonFile(ServerStatisticsFilePath, emptyObj);
 
     // Add new server to list of servers.
     var listOfServersJSON = "./ListOfServers.json";
     var newServerObj = require(listOfServersJSON);
-    
     newServerObj[guild.name] = guild.id;
-
     UpdateJsonFile(listOfServersJSON, newServerObj);
-
-    // Setup new server settings.
-    var newServerSettingsObj = {"OwnerID": guild.owner.id, "createcategory": false};
-
-    var serverSettingsPath = "./ServerSettings/"+guild.id+".json";
-
-    UpdateJsonFile(serverSettingsPath, newServerSettingsObj);
-
-    // Server statistics.
-
 
     console.log("Added server: "+ guild.name +" to records.");  
 }
 
 async function DeleteServerRecords(guild){
-    var serverWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
-    var serverSettingsPath = `./ServerSettings/${guild.id}.json`;
+    //var serverWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
+    var serverWhitelistFilePath = `./Servers/${guild.id}/whitelist.json`;
+    var serverSettingsPath = `./Servers/${guild.id}/settings.json`;
 
-    // Delete the whitelist used by the server.
-    fs.unlink(serverWhitelistFilePath, function(err) {
-        if (err) throw err;
-    console.log(`${guild.name}whitelist removed.`);
-    });
-
-    // Delete the settings used by the server.
-    fs.unlink(serverSettingsPath, function(err) {
-        if (err) throw err;
-    console.log(`${guild.name} settings removed.`);
-    });
+    // Delete each of the server's files on record.
+    var ServersFolder = `./Servers/${guild.id}`;
+    fs.remove(ServersFolder, err => {
+        if (err) return console.error(err)
+        console.log("Delete server's records.")
+      });
 
     var listOfServersJSON = "./ListOfServers.json";
     var newServerObj = require(listOfServersJSON);
