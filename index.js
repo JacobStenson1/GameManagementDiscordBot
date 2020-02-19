@@ -58,8 +58,9 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
 
         let gameNameUserIsPlaying = newMember.presence.game.name;
-        var serverStatisticsFilePath = `./Servers/${newMember.guild.id}/statistics.json`;
-        let serverWhitelist = require(`./Servers/${newMember.guild.id}/whitelist.json`);
+        var serverStatisticsFilePath = GetStatsFilePath(newMember.guild);
+        let temp = GetWhitelistFilePath(newMember.guild);
+        let serverWhitelist = require(temp);
 
         // TRACK EVENT (game opened)
         //  (how many times has Battlefield 5 been opened for example)
@@ -68,9 +69,9 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         // Games opened in past month
 
         // Record new game open (ignores whitelist).
-        RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath);
+        //RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath);
 
-        //--- newGameRecording(newMember);
+        NewGameRecording(newMember);
 
         // Recording done, if presence is nothing then just return out.
         if(newMember.presence.game == null){return;}
@@ -79,7 +80,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         let roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
         var roleToAddToMember;
 
-        let serverSettings = require(`./Servers/${newMember.guild.id}/settings.json`);
+        let serverSettings = require(GetSettingsFilePath(newMember.guild));
         
         console.log(`The game they are now playing is: ${gameNameUserIsPlaying}`);
         console.log(`Is their game in the server's whitelist? ${gameNameUserIsPlaying in serverWhitelist}`);
@@ -140,15 +141,7 @@ bot.on('message', async(message) => {
 
     switch(args[0]){
         case '!gmtest':
-            //message.channel.send("Bot is running!");
-            test1 = Date.now();
-            break;
-        case '!gmtest1':
-            //message.channel.send("Bot is running!");
-            test2 = Date.now();
-            console.log(test1);
-            console.log(test2);
-            message.reply(`test2 - test1 = ${test2-test1}`)
+            message.channel.send("Bot is running!");
             break;
 
         case '!gmadd':
@@ -231,7 +224,7 @@ bot.on('message', async(message) => {
 
             var gameToDelete = args.slice(1,args.length).join(" ").toString();
             //var serverWhitelistPath = `./ServerWhitelists/${message.guild.id}.json`;
-            var serverWhitelistPath = `./Servers/${message.guild.id}/whitelist.json`;
+            var serverWhitelistPath = GetWhitelistFilePath(message.guild);
             var serverWhitelist = require(serverWhitelistPath);
 
             // Delete from the whitelist.
@@ -288,11 +281,11 @@ bot.on('message', async(message) => {
 
 async function AddRoleToWhitelist(message,gameName,roleName,roleToAdd){
     var guild = message.guild;
-    //var serverWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
-    var serverWhitelistFilePath = `./Servers/${guild.id}/whitelist.json`;
+    var serverWhitelistFilePath = GetWhitelistFilePath(guild);
     var whiteListJson = await require(serverWhitelistFilePath);
 
-    whiteListJson[gameName] = roleToAdd;
+    //whiteListJson[gameName] = roleToAdd;
+    whiteListJson[message.author.id] = {"dateGameOpen": Date.now(), "gameName": message.author.presence.game.name};
 
     UpdateJsonFile(serverWhitelistFilePath, whiteListJson);
 
@@ -308,7 +301,7 @@ async function UpdateSetting(settingToChange, newSettingValue, message){
     }
 
     //var serverSettingsPath = `./ServerSettings/${message.member.guild.id}.json`;
-    var serverSettingsPath = `./Servers/${message.member.guild.id}/settings.json`;
+    var serverSettingsPath = GetSettingsFilePath(message.guild);
     var serverSettings = await require(serverSettingsPath);
     serverSettings[settingToChange] = newValue;
 
@@ -374,19 +367,19 @@ async function InitialiseNewServer(guild){
 
     // Setting up new server's whitelist.
     var emptyObj = {}
-    var ServerWhitelistFilePath = `./Servers/${guild.id}/whitelist.json`;
+    var ServerWhitelistFilePath = GetWhitelistFilePath(guild);
     UpdateJsonFile(ServerWhitelistFilePath, emptyObj);
 
     // Setup new server's settings.
     var newServerSettingsObj = {"OwnerID": guild.owner.id, "createcategory": false};
-    var serverSettingsPath = `./Servers/${guild.id}/settings.json`;
+    var serverSettingsPath = GetSettingsFilePath(guild);
     UpdateJsonFile(serverSettingsPath, newServerSettingsObj);
 
     // Setup new server's statistics.
-    var emptyObj = {"Total times games opened":{},
+    var emptyObj = {"Total Minutes Played":{},
                     "Number of times roles added to users":{}
                 }
-    var serverStatisticsFilePath = `./Servers/${guild.id}/statistics.json`;
+    var serverStatisticsFilePath = GetStatsFilePath(guild);
     UpdateJsonFile(serverStatisticsFilePath, emptyObj);
 
     // Add new server to list of servers.
@@ -415,7 +408,7 @@ async function DeleteServerRecords(guild){
     UpdateJsonFile(listOfServersJSON, newServerObj);
 }
 
-async function RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath){
+/* async function RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath){
     var serverStats = require(serverStatisticsFilePath);
 
     // If the current game being played doesnt exist in records...
@@ -426,7 +419,7 @@ async function RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath){
     
     serverStats["Total times games opened"][gameNameUserIsPlaying] += 1;
     UpdateJsonFile(serverStatisticsFilePath, serverStats);
-}
+} */
 
 async function RecordRoleAdd(role,serverStatisticsFilePath){
     var serverStats = require(serverStatisticsFilePath);
@@ -442,29 +435,100 @@ async function RecordRoleAdd(role,serverStatisticsFilePath){
     UpdateJsonFile(serverStatisticsFilePath, serverStats);
 }
 
-async function newGameRecording(){
+async function NewGameRecording(newMember){
     let tempRecordFilePath = `./tempRecord.json`;
-    tempGameRecord = require(tempRecordFilePath);
+    tempGameRecord = await require(tempRecordFilePath);
 
     // If there is no record of a user...
-    if(!tempGameRecord[newMember.id]){
+    if(!(newMember.id in tempGameRecord)){
         // CREATE RECORD FOR A USER.
         // User just opened a game.
-        tempGameRecord[newMember.id]["dateGameOpen"] = "CURRENTDATEANDTIMEGOESHERE";
-        tempGameRecord[newMember.id]["gameName"] = newMember.presence.game.name;
-    }else if(tempGameRecord[newMember.id]){
-        // there is a user on record.
+        //tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
+
+        //tempGameRecord.push(newMember.id);
+
+        //var memberData = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name}
+        var memberData = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name}
+        //JSON.stringify(memberData)
+
+        //console.log(tempGameRecord);
+        //console.log(memberData);
+
+        var temp = newMember.id;
+
+        tempGameRecord[temp] = memberData;
+
+        //tempGameRecord.push = {}
+
+        tempGameRecord[temp] = memberData;
+        //tempGameRecord[temp]["gameName"] = newMember.presence.game.name;
+
+        console.log(tempGameRecord);
+
+        UpdateJsonFile(tempRecordFilePath, tempGameRecord);
+
+        /* fs.writeJson(tempRecordFilePath, tempGameRecord)
+        .then(() => {
+        console.log('success!')
+        })
+        .catch(err => {
+        console.error(err)
+        }) */
+
+        /* fs.writeFile(tempRecordFilePath, tempGameRecord, function (err) {
+            if (err) throw err;
+            console.log('Saved!');
+          }); */
+
+        /* await jsonfile.writeFile(tempRecordFilePath, tempGameRecord, function(err){
+            if(err) throw(err);
+        }); */
+
+    }else if(newMember.id in tempGameRecord){
+
+
+        /* // there is a user on record.
         // PERMA RECORD THEIR INFORMATION ON RECORD.
+
+        let whenGameOpened = tempGameRecord[newMember.id]["dateGameOpen"];
+        let gameName = tempGameRecord[newMember.id]["gameName"];
+        let totalTimeOpenFor = Date.now() - whenGameOpened;
+
+        delete tempGameRecord[newMember.id];
+        UpdateJsonFile(tempRecordFilePath, tempGameRecord);
+
+        let membersServer = newMember.guild.id;
+        let statsFilePath = GetStatsFilePath(newMember.guild);
+        var statsFile = require(statsFilePath);
+
+        statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor;
+
+        UpdateJsonFile(GetStatsFilePath(newMember.guild), statsFile); */
+
         // THEN start recording their new game.
     }else{
         console.log("Something went wrong.")
     }
+
+
     // Is their name on record?
     //  If so then perma record what they were doing on record
     //  Delete the record for the user.
 
 
     
+}
+
+function GetStatsFilePath(guild){
+    return `./Servers/${guild.id}/statistics.json`;
+}
+
+function GetSettingsFilePath(guild){
+    return `./Servers/${guild.id}/settings.json`;
+}
+
+function GetWhitelistFilePath(guild){
+    return `./Servers/${guild.id}/whitelist.json`
 }
 
 // Update the presence to display total servers the bot is in.
