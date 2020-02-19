@@ -1,5 +1,0 @@
-Statistic Tracking
-
-day tracking - reset at 00:00 every day
-week tracking - reset monday 00:00 every week
-month tracking - reset 1st each month at 00:00

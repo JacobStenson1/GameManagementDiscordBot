@@ -105,6 +105,6 @@ dist
 
 # GameManagementBot ignores
 config.json
-/ServerWhitelists
-/ServerSettings
+/Servers
 ListOfServers.json
+notes.txt

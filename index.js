@@ -251,16 +251,16 @@ bot.on('message', async(message) => {
             }
             // Use case: !gmsettings [Setting to change] [On/Off]
 
-            var newSettingValue = args.pop().toLowerCase();
-            var settingToChange = args.pop().toLowerCase();
+            var newSettingValue = args.pop();
+            var settingToChange = args.pop();
 
-            if (newSettingValue != "on" && newSettingValue != "off"){message.reply("Please use ON or OFF for a new setting value.")}
+            if (newSettingValue.toLowerCase() != "on" && newSettingValue.toLowerCase() != "off"){message.reply("Please use ON or OFF for a new setting value.")}
 
             if (settingToChange == "createcategory"){
                 // Does the user have the manage channels permission?
                 if (message.member.hasPermission(['MANAGE_CHANNELS'])){
                     ChangeSetting(settingToChange, newSettingValue, message);
-                    message.channel.send("Setting changed.");
+                    message.channel.send(`**${settingToChange}** turned **${newSettingValue}**.`);
                 }
             }else{
                 message.reply(`Invalid use of the command. ${settingToChange} is not a setting that can be changed.`)
