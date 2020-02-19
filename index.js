@@ -7,24 +7,7 @@ const {prefix, token, botName} = require('./config.json');
 const bot = new Discord.Client();
 
 
-// DONT KNOW IF SAVING IS NEEDED AS WHITELISTS WILL BE PULLED AT RUNTIME
-// Limits how often saves can happen to avoid abuse
-function scheduleSave(){
-    if(saved){
-        setTimeout(save, minumumSaveInterval);
-        saved = false;
-    }
-}
-
-// Saves the whitelist
-function save(){
-    jsonfile.writeFile("./whitelist.json", whiteListedApps, { spaces: 2, EOL: '\r\n' }, function(err){
-        if (err) throw(err);
-    })
-    console.log("Whitelist file saved.")
-    saved = true;
-}
-// -------------------------------------------------------------------------------------------
+// ----------------------------------------
 
 // Ran when the bot is ready on the server.
 bot.on('ready', async() => {
@@ -37,24 +20,15 @@ bot.on('guildCreate', async(guild) => {
     console.log("Bot was added to a new server.")
 
     // Check to see if the server's folder exists. (This is basically a check to see if the bot has been added to this server before)
-    //var ServerWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
-
     var serverDir = `./Servers/${guild.id}`;
     if (!fs.existsSync(serverDir)){
         fs.mkdirSync(serverDir);
 
-        //var ServerWhitelistFilePath = `./Servers/${guild.id}/whitelist.json`;
         await InitialiseNewServer(guild);
 
         console.log("Created new server directory.");
     }
-    
-    /* var ServerWhitelistFilePath = `./Servers/${guild.id}/whitelist.json`;
-    if (!fs.existsSync(ServerWhitelistFilePath)){
-        await InitialiseNewServer(ServerWhitelistFilePath, guild);
-    } */
 
-    //Call OnJoinSettings() function.
     OnJoinMessageSend(guild);
     UpdatePresence();
 });
@@ -82,17 +56,14 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         // Games opened in past month
 
         console.log("\n")
-
         console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
 
-        //let serverWhitelist = require("./ServerWhitelists/"+newMember.guild.id+".json");
         let serverWhitelist = require(`./Servers/${newMember.guild.id}/whitelist.json`);
         let gameUserIsPlaying = newMember.presence.game.name;
         roleFromWhitelist = serverWhitelist[gameUserIsPlaying];
         let roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
         var roleToAddToMember;
 
-        //let serverSettings = require(`./ServerSettings/${newMember.guild.id}.json`);
         let serverSettings = require(`./Servers/${newMember.guild.id}/settings.json`);
         
         console.log(`The game they are now playing is: ${gameUserIsPlaying}`);
@@ -386,10 +357,6 @@ async function InitialiseNewServer(guild){
 }
 
 async function DeleteServerRecords(guild){
-    //var serverWhitelistFilePath = "./ServerWhitelists/"+guild.id+".json";
-    var serverWhitelistFilePath = `./Servers/${guild.id}/whitelist.json`;
-    var serverSettingsPath = `./Servers/${guild.id}/settings.json`;
-
     // Delete each of the server's files on record.
     var ServersFolder = `./Servers/${guild.id}`;
     fs.remove(ServersFolder, err => {
