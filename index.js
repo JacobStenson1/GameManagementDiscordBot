@@ -71,7 +71,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         // Record new game open (ignores whitelist).
         //RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath);
 
-        NewGameRecording(oldMember,newMember);
+        GameRecording(oldMember,newMember);
 
         // Recording done, if presence is nothing then just return out.
         if(newMember.presence.game == null || (newMember.presence.game == "Spotify")){return;}
@@ -376,11 +376,16 @@ async function InitialiseNewServer(guild){
     UpdateJsonFile(serverSettingsPath, newServerSettingsObj);
 
     // Setup new server's statistics.
-    var emptyObj = {"Total Minutes Played":{},
+    var obj = {"Total Minutes Played":{},
                     "Number of times roles added to users":{}
                 }
     var serverStatisticsFilePath = GetStatsFilePath(guild);
-    UpdateJsonFile(serverStatisticsFilePath, emptyObj);
+    UpdateJsonFile(serverStatisticsFilePath, obj);
+
+    // Setup new server's temp record file system.
+    var obj = {}
+    var serverTempRecordFilePath = GetTempRecordFilePath(guild);
+    UpdateJsonFile(serverTempRecordFilePath, obj);
 
     // Add new server to list of servers.
     var listOfServersJSON = "./ListOfServers.json";
@@ -392,11 +397,11 @@ async function InitialiseNewServer(guild){
 }
 
 async function DeleteServerRecords(guild){
-    // Delete each of the server's files on record.
+    // Delete the server's folder.
     var ServersFolder = `./Servers/${guild.id}`;
     fs.remove(ServersFolder, err => {
         if (err) return console.error(err)
-        console.log("Delete server's records.")
+        console.log("Deleted server's records.");
       });
 
     var listOfServersJSON = "./ListOfServers.json";
@@ -435,102 +440,61 @@ async function RecordRoleAdd(role,serverStatisticsFilePath){
     UpdateJsonFile(serverStatisticsFilePath, serverStats);
 }
 
-async function NewGameRecording(oldMember, newMember){
-    let tempRecordFilePath = `./tempRecord.json`;
-    tempGameRecord = await require(tempRecordFilePath);
+async function GameRecording(oldMember, newMember){
+    let serverTempRecordFilePath = GetTempRecordFilePath(newMember.guild);
+    tempGameRecord = await require(serverTempRecordFilePath);
 
     console.log(`Old member game name : ${oldMember.presence.game.name}`);
     console.log(`New member game name : ${newMember.presence.game.name}`);
-    console.log(`is the id in the temp record file? ${(newMember.id in tempGameRecord)}`)
-    console.log(`Do we enter the if below? ${oldMember.presence.game.name != newMember.presence.game.name}`)
+    console.log(`is the id in the temp record file? ${(newMember.id in tempGameRecord)}`);
+    console.log(`Do we enter the if below? ${oldMember.presence.game.name != newMember.presence.game.name}`);
+    console.log(`Server name: ${newMember.guild.name}`);
 
     // if old and new game are different then record the old game.
     if(oldMember.presence.game.name != newMember.presence.game.name){
-        //perma record the old game from the temp record file.
-        // then start recording the new game
-
         // If there is a record of the user in the temp record file.
-        if (newMember.id in tempGameRecord){
-            // perma save the content in the file.
 
-            console.log("Perma save the temp record of the user.");
-            let whenGameOpened = tempGameRecord[newMember.id]["dateGameOpen"];
-            let gameName = tempGameRecord[newMember.id]["gameName"];
-            let totalTimeOpenFor = Date.now() - whenGameOpened;
+        var isUsersGameBeingRecordedAlready;
+        try{ isUsersGameBeingRecordedAlready = newMember.presence.game.name in tempGameRecord[newMember.id]["gameName"];
+        }catch{ isUsersGameBeingRecordedAlready = false; }
 
-            delete tempGameRecord[newMember.id];
-            UpdateJsonFile(tempRecordFilePath, tempGameRecord);
-
-            let membersServer = newMember.guild.id;
-
-            // check to see if the game is in the stats file if it isnt just assign the total time played for to what we have here and dont add it to the content there.
-            let statsFilePath = GetStatsFilePath(newMember.guild);
-            var statsFile = require(statsFilePath);
-
-            
-            // Ternary, if game exists in stats then add total time played, if it doesnt then assign time played.
-           gameName in statsFile["Total Minutes Played"] ? 
-            statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor :
-             statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
-
-            UpdateJsonFile(statsFilePath, statsFile);
+        if (newMember.id in tempGameRecord && !isUsersGameBeingRecordedAlready){
+            // Perma save the content in the temp file to user's server's stats.
+            PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember)
         }
-
         // Start recording the new game
-        console.log("Start recording their new game.")
-        tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
-
-        console.log(tempGameRecord);
-
-        UpdateJsonFile(tempRecordFilePath, tempGameRecord);
-
+        console.log("record new game")
+        StartNewGameRecording(newMember);
     }
+}
 
-    // If there is no record of a user...
-    if(!(newMember.id in tempGameRecord)){
-        // CREATE RECORD FOR A USER.
-        // User just opened a game.
+function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember){
+    console.log("Perma save the temp record of the user.");
+    let whenGameOpened = tempGameRecord[newMember.id]["dateGameOpen"];
+    let gameName = tempGameRecord[newMember.id]["gameName"];
+    let totalTimeOpenFor = Date.now() - whenGameOpened;
 
-        /* tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
+    delete tempGameRecord[newMember.id];
+    UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
 
-        console.log(tempGameRecord);
-
-        UpdateJsonFile(tempRecordFilePath, tempGameRecord); */
-
-    }else if(newMember.id in tempGameRecord){
-
-        // this messes with the temp record file... Code needs changing.
-
-        /* // there is a user on record.
-        // PERMA RECORD THEIR INFORMATION ON RECORD.
-
-        let whenGameOpened = tempGameRecord[newMember.id]["dateGameOpen"];
-        let gameName = tempGameRecord[newMember.id]["gameName"];
-        let totalTimeOpenFor = Date.now() - whenGameOpened;
-
-        delete tempGameRecord[newMember.id];
-        UpdateJsonFile(tempRecordFilePath, tempGameRecord);
-
-        let membersServer = newMember.guild.id;
-        let statsFilePath = GetStatsFilePath(newMember.guild);
-        var statsFile = require(statsFilePath);
-
-        statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor;
-
-        UpdateJsonFile(GetStatsFilePath(newMember.guild), statsFile); */
-
-        // THEN start recording their new game.
-    }else{
-        console.log("Something went wrong.")
-    }
-
-
-    // Is their name on record?
-    //  If so then perma record what they were doing on record
-    //  Delete the record for the user.
-
+    let statsFilePath = GetStatsFilePath(newMember.guild);
+    var statsFile = require(statsFilePath);
 
     
+    // Ternary, if game exists in server's stats then add total time played to what is stored, if it doesnt then assign time played.
+    gameName in statsFile["Total Minutes Played"] ? 
+    statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor :
+        statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
+
+    UpdateJsonFile(statsFilePath, statsFile);
+}
+
+async function StartNewGameRecording(newMember){
+    let serverTempRecordFilePath = GetTempRecordFilePath(newMember.guild);
+    tempGameRecord = await require(serverTempRecordFilePath);
+
+    tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
+    UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
 }
 
 function GetStatsFilePath(guild){
@@ -542,7 +506,11 @@ function GetSettingsFilePath(guild){
 }
 
 function GetWhitelistFilePath(guild){
-    return `./Servers/${guild.id}/whitelist.json`
+    return `./Servers/${guild.id}/whitelist.json`;
+}
+
+function GetTempRecordFilePath(guild){
+    return `./Servers/${guild.id}/tempRecord.json`;
 }
 
 // Update the presence to display total servers the bot is in.
