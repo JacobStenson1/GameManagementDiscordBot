@@ -52,8 +52,8 @@ bot.on('guildDelete', async(guild) => {
 bot.on('presenceUpdate', async(oldMember, newMember) => {
     // Ensure the members game has changed (some games auto update presence (game doesnt change))
     if(oldMember.presence.game != newMember.presence.game){
-        // Return out if presence is spotify or if member is a bot or if the presence is now nothing.
-        if((newMember.presence.game == "Spotify") || (newMember.bot)){ return; }
+        // Return out if member is a bot..
+        if(newMember.bot){ return; }
         console.log("\n");
         console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
 
@@ -71,10 +71,10 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         // Record new game open (ignores whitelist).
         //RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath);
 
-        NewGameRecording(newMember);
+        NewGameRecording(oldMember,newMember);
 
         // Recording done, if presence is nothing then just return out.
-        if(newMember.presence.game == null){return;}
+        if(newMember.presence.game == null || (newMember.presence.game == "Spotify")){return;}
 
         roleFromWhitelist = serverWhitelist[gameNameUserIsPlaying];
         let roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
@@ -435,20 +435,67 @@ async function RecordRoleAdd(role,serverStatisticsFilePath){
     UpdateJsonFile(serverStatisticsFilePath, serverStats);
 }
 
-async function NewGameRecording(newMember){
+async function NewGameRecording(oldMember, newMember){
     let tempRecordFilePath = `./tempRecord.json`;
     tempGameRecord = await require(tempRecordFilePath);
+
+    console.log(`Old member game name : ${oldMember.presence.game.name}`);
+    console.log(`New member game name : ${newMember.presence.game.name}`);
+    console.log(`is the id in the temp record file? ${(newMember.id in tempGameRecord)}`)
+    console.log(`Do we enter the if below? ${oldMember.presence.game.name != newMember.presence.game.name}`)
+
+    // if old and new game are different then record the old game.
+    if(oldMember.presence.game.name != newMember.presence.game.name){
+        //perma record the old game from the temp record file.
+        // then start recording the new game
+
+        // If there is a record of the user in the temp record file.
+        if (newMember.id in tempGameRecord){
+            // perma save the content in the file.
+
+            console.log("Perma save the temp record of the user.");
+            let whenGameOpened = tempGameRecord[newMember.id]["dateGameOpen"];
+            let gameName = tempGameRecord[newMember.id]["gameName"];
+            let totalTimeOpenFor = Date.now() - whenGameOpened;
+
+            delete tempGameRecord[newMember.id];
+            UpdateJsonFile(tempRecordFilePath, tempGameRecord);
+
+            let membersServer = newMember.guild.id;
+
+            // check to see if the game is in the stats file if it isnt just assign the total time played for to what we have here and dont add it to the content there.
+            let statsFilePath = GetStatsFilePath(newMember.guild);
+            var statsFile = require(statsFilePath);
+
+            
+            // Ternary, if game exists in stats then add total time played, if it doesnt then assign time played.
+           gameName in statsFile["Total Minutes Played"] ? 
+            statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor :
+             statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
+
+            UpdateJsonFile(statsFilePath, statsFile);
+        }
+
+        // Start recording the new game
+        console.log("Start recording their new game.")
+        tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
+
+        console.log(tempGameRecord);
+
+        UpdateJsonFile(tempRecordFilePath, tempGameRecord);
+
+    }
 
     // If there is no record of a user...
     if(!(newMember.id in tempGameRecord)){
         // CREATE RECORD FOR A USER.
         // User just opened a game.
 
-        tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
+        /* tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
 
         console.log(tempGameRecord);
 
-        UpdateJsonFile(tempRecordFilePath, tempGameRecord);
+        UpdateJsonFile(tempRecordFilePath, tempGameRecord); */
 
     }else if(newMember.id in tempGameRecord){
 
