@@ -443,49 +443,16 @@ async function NewGameRecording(newMember){
     if(!(newMember.id in tempGameRecord)){
         // CREATE RECORD FOR A USER.
         // User just opened a game.
-        //tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
 
-        //tempGameRecord.push(newMember.id);
-
-        //var memberData = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name}
-        var memberData = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name}
-        //JSON.stringify(memberData)
-
-        //console.log(tempGameRecord);
-        //console.log(memberData);
-
-        var temp = newMember.id;
-
-        tempGameRecord[temp] = memberData;
-
-        //tempGameRecord.push = {}
-
-        tempGameRecord[temp] = memberData;
-        //tempGameRecord[temp]["gameName"] = newMember.presence.game.name;
+        tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
 
         console.log(tempGameRecord);
 
         UpdateJsonFile(tempRecordFilePath, tempGameRecord);
 
-        /* fs.writeJson(tempRecordFilePath, tempGameRecord)
-        .then(() => {
-        console.log('success!')
-        })
-        .catch(err => {
-        console.error(err)
-        }) */
-
-        /* fs.writeFile(tempRecordFilePath, tempGameRecord, function (err) {
-            if (err) throw err;
-            console.log('Saved!');
-          }); */
-
-        /* await jsonfile.writeFile(tempRecordFilePath, tempGameRecord, function(err){
-            if(err) throw(err);
-        }); */
-
     }else if(newMember.id in tempGameRecord){
 
+        // this messes with the temp record file... Code needs changing.
 
         /* // there is a user on record.
         // PERMA RECORD THEIR INFORMATION ON RECORD.
