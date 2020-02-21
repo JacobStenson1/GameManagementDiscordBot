@@ -55,7 +55,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         // Return out if member is a bot..
         if(newMember.bot){ return; }
         console.log("\n");
-        console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
+        //console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
         //console.log(`${newMember.displayName}'s presence is now:`);
         //console.log(newMember.presence);
 
@@ -85,8 +85,8 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 
         let serverSettings = require(GetSettingsFilePath(newMember.guild));
         
-        console.log(`The game they are now playing is: ${gameNameUserIsPlaying}`);
-        console.log(`Is their game in the server's whitelist? ${gameNameUserIsPlaying in serverWhitelist}`);
+        //console.log(`The game they are now playing is: ${gameNameUserIsPlaying}`);
+        //console.log(`Is their game in the server's whitelist? ${gameNameUserIsPlaying in serverWhitelist}`);
 
         // Is the game the user is playing in the whitelist? If it isn't do not continue.
         if (!(gameNameUserIsPlaying in serverWhitelist)){ return; }
@@ -432,7 +432,7 @@ async function DeleteServerRecords(guild){
 async function RecordRoleAdd(role,serverStatisticsFilePath){
     var serverStats = require(serverStatisticsFilePath);
 
-    let section = "Number of times roles added to users";
+    let section = "Number of times roles added";
 
     // If a record of the role being added is not on record...
     if (!serverStats[section][role.name]){
@@ -447,12 +447,6 @@ async function GameRecording(oldMember, newMember){
     let serverTempRecordFilePath = GetTempRecordFilePath(newMember.guild);
     tempGameRecord = await require(serverTempRecordFilePath);
 
-    /* console.log(`Old member game name : ${oldMember.presence.game.name}`);
-    console.log(`New member game name : ${newMember.presence.game.name}`);
-    console.log(`is the id in the temp record file? ${(newMember.id in tempGameRecord)}`);
-    console.log(`Do we enter the if below? ${oldMember.presence.game.name != newMember.presence.game.name}`);
-    console.log(`Server name: ${newMember.guild.name}`); */
-
     var isUsersGameBeingRecordedAlready;
     try{ isUsersGameBeingRecordedAlready = newMember.presence.game.name in tempGameRecord[newMember.id]["gameName"];
     }catch{ isUsersGameBeingRecordedAlready = false; }
@@ -462,10 +456,10 @@ async function GameRecording(oldMember, newMember){
         // Perma save the content in the temp file to user's server's stats.
         await PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember);
     }
-    // Start recording the new game
-    console.log(`Record new game for server: ${newMember.guild.name}`);
-    // If the member's presence is now nothing, return out.
     if (newMember.presence.game == null){return;}
+    // Start recording the new game
+    console.log(`Record new game for User: ${newMember.displayName} | Game: ${newMember.presence.game.name} | Server: ${newMember.guild.name}.`);
+    // If the member's presence is now nothing, return out.
     await StartNewGameRecording(newMember);
 }
 
