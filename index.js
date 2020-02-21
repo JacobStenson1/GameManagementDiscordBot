@@ -53,7 +53,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
     // Ensure the members game has changed (some games auto update presence (game doesnt change))
     if(oldMember.presence.game != newMember.presence.game){
         // Return out if member is a bot..
-        if(newMember.bot){ return; }
+        if(newMember.user.bot){ return; }
         console.log("\n");
         //console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
         //console.log(`${newMember.displayName}'s presence is now:`);
@@ -244,7 +244,9 @@ bot.on('message', async(message) => {
             message.reply("Games list not implemented yet.")
             break;
         case '!gmstats':
-            message.reply("stats are a WIP.");
+            var serverStats = GetServerStats(message.guild);
+            //var statsString = JSON.stringify(serverStats);
+            message.channel.send(serverStats);
             break;
 
         case '!gmsettings':
@@ -416,18 +418,11 @@ async function DeleteServerRecords(guild){
     UpdateJsonFile(listOfServersJSON, newServerObj);
 }
 
-/* async function RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath){
-    var serverStats = require(serverStatisticsFilePath);
-
-    // If the current game being played doesnt exist in records...
-    if (!serverStats["Total times games opened"][gameNameUserIsPlaying]){
-        // Initialise new game record.
-        serverStats["Total times games opened"][gameNameUserIsPlaying] = 0;
-    }
-    
-    serverStats["Total times games opened"][gameNameUserIsPlaying] += 1;
-    UpdateJsonFile(serverStatisticsFilePath, serverStats);
-} */
+// --------------------------------------
+//
+//       STATISTIC TRACKING SYSTEM
+//
+// --------------------------------------
 
 async function RecordRoleAdd(role,serverStatisticsFilePath){
     console.log(`Record new role addition with role: ${role.name}`);
@@ -463,7 +458,7 @@ async function GameRecording(oldMember, newMember){
 async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember){
     let whenGameOpened = tempGameRecord[newMember.id]["dateGameOpen"];
     let gameName = tempGameRecord[newMember.id]["gameName"];
-    let totalTimeOpenFor = Date.now() - whenGameOpened;
+    let totalTimeOpenFor = (Date.now() - whenGameOpened) / 60000;
 
     delete tempGameRecord[newMember.id];
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
@@ -471,7 +466,6 @@ async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, ne
     let statsFilePath = GetStatsFilePath(newMember.guild);
     var statsFile = require(statsFilePath);
 
-    
     // Ternary, if game exists in server's stats then add total time played to what is stored, if it doesnt then assign time played.
     gameName in statsFile["Total Minutes Played"] ? 
     statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor :
@@ -486,6 +480,14 @@ async function StartNewGameRecording(newMember){
 
     tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
+}
+
+function GetServerStats(guild){
+    var serverStatsFilePath = GetStatsFilePath(guild);
+    serverStats = require(serverStatsFilePath);
+    serverStats = JSON.stringify(serverStats);
+
+    return serverStats;
 }
 
 // Smaller functions -------
