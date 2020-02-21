@@ -54,7 +54,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
     if(oldMember.presence.game != newMember.presence.game){
         // Return out if member is a bot..
         if(newMember.user.bot){ return; }
-        console.log("\n");
+        //console.log("\n");
         //console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
         //console.log(`${newMember.displayName}'s presence is now:`);
         //console.log(newMember.presence);
@@ -444,13 +444,13 @@ async function GameRecording(oldMember, newMember){
     }catch{ isUsersGameBeingRecordedAlready = false; }
 
     if (newMember.id in tempGameRecord && !isUsersGameBeingRecordedAlready){
-        console.log(`Perma save the temp record for user: ${newMember.displayName} | Game: ${tempGameRecord[newMember.id]["gameName"]} | Server: ${newMember.guild.name}`);
+        console.log(`SAVE RECORD: ${newMember.displayName} | Game: ${tempGameRecord[newMember.id]["gameName"]} | Server: ${newMember.guild.name}`);
         // Perma save the content in the temp file to user's server's stats.
         await PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember);
     }
     if (newMember.presence.game == null){return;}
     // Start recording the new game
-    console.log(`Record new game for User: ${newMember.displayName} | Game: ${newMember.presence.game.name} | Server: ${newMember.guild.name}.`);
+    //console.log(`NEW Record ${newMember.displayName} | Game: ${newMember.presence.game.name} | Server: ${newMember.guild.name}.`);
     // If the member's presence is now nothing, return out.
     await StartNewGameRecording(newMember);
 }
