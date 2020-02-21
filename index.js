@@ -117,7 +117,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         RecordRoleAdd(roleToAddToMember,serverStatisticsFilePath)
         //-- TRACK EVENT
 
-        console.log(`Added role: ${roleToAddToMember.name} to ${newMember.displayName}.`);
+        console.log(`Added ROLE: ${roleToAddToMember.name} | Member: ${newMember.displayName} | Server: ${newMember.guild.name}.`);
 
         // if admin has catgegory creation on then create the role category here, based on the game.
 
@@ -246,7 +246,7 @@ bot.on('message', async(message) => {
         case '!gmstats':
             var serverStats = GetServerStats(message.guild);
             //var statsString = JSON.stringify(serverStats);
-            message.channel.send(serverStats);
+            message.channel.send("Server Stats", {files: [serverStats]});
             break;
 
         case '!gmsettings':
@@ -459,6 +459,7 @@ async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, ne
     let whenGameOpened = tempGameRecord[newMember.id]["dateGameOpen"];
     let gameName = tempGameRecord[newMember.id]["gameName"];
     let totalTimeOpenFor = (Date.now() - whenGameOpened) / 60000;
+    //totalTimeOpenFor = totalTimeOpenFor.toFixed(1);
 
     delete tempGameRecord[newMember.id];
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
@@ -484,10 +485,10 @@ async function StartNewGameRecording(newMember){
 
 function GetServerStats(guild){
     var serverStatsFilePath = GetStatsFilePath(guild);
-    serverStats = require(serverStatsFilePath);
-    serverStats = JSON.stringify(serverStats);
+    //serverStats = require(serverStatsFilePath);
+    //serverStats = JSON.stringify(serverStats);
 
-    return serverStats;
+    return serverStatsFilePath;
 }
 
 // Smaller functions -------
