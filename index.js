@@ -380,7 +380,7 @@ async function InitialiseNewServer(guild){
 
     // Setup new server's statistics.
     var obj = {"Total Minutes Played":{},
-                    "Number of times roles added to users":{}
+                "Number of times roles added to users":{}
                 }
     var serverStatisticsFilePath = GetStatsFilePath(guild);
     UpdateJsonFile(serverStatisticsFilePath, obj);
@@ -430,17 +430,14 @@ async function DeleteServerRecords(guild){
 } */
 
 async function RecordRoleAdd(role,serverStatisticsFilePath){
-    var serverStats = require(serverStatisticsFilePath);
+    console.log(`Record new role addition with role: ${role.name}`);
+    var statsFile = require(serverStatisticsFilePath);
 
-    let section = "Number of times roles added";
+    let roleName = role.name;
 
-    // If a record of the role being added is not on record...
-    if (!serverStats[section][role.name]){
-        serverStats[section][role.name] = 0;
-    }
+    statsFile["Number of times roles added to users"][roleName] = 1;
 
-    serverStats[section][role.name] += 1;
-    UpdateJsonFile(serverStatisticsFilePath, serverStats);
+    UpdateJsonFile(serverStatisticsFilePath, statsFile);
 }
 
 async function GameRecording(oldMember, newMember){
