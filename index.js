@@ -56,8 +56,8 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         if(newMember.bot){ return; }
         console.log("\n");
         console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
-        console.log(`${newMember.displayName}'s presence is now:`);
-        console.log(newMember.presence);
+        //console.log(`${newMember.displayName}'s presence is now:`);
+        //console.log(newMember.presence);
 
         // Record new game open (ignores whitelist).
         GameRecording(oldMember,newMember);
@@ -458,9 +458,9 @@ async function GameRecording(oldMember, newMember){
     }catch{ isUsersGameBeingRecordedAlready = false; }
 
     if (newMember.id in tempGameRecord && !isUsersGameBeingRecordedAlready){
-        console.log(`Perma save the temp record for user: ${newMember.displayName} in server: ${newMember.guild.name}`);
+        console.log(`Perma save the temp record for user: ${newMember.displayName} | Game: ${tempGameRecord[newMember.id]["gameName"]} | Server: ${newMember.guild.name}`);
         // Perma save the content in the temp file to user's server's stats.
-        await PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember)
+        await PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember);
     }
     // Start recording the new game
     console.log(`Record new game for server: ${newMember.guild.name}`);
