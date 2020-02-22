@@ -380,7 +380,7 @@ async function InitialiseNewServer(guild){
     UpdateJsonFile(serverSettingsPath, newServerSettingsObj);
 
     // Setup new server's statistics.
-    var obj = {"Total Minutes Played":{},
+    var obj = {"Total Seconds Played":{},
                 "Number of times roles added to users":{}
                 }
     var serverStatisticsFilePath = GetStatsFilePath(guild);
@@ -443,7 +443,6 @@ async function GameRecording(oldMember, newMember){
     }catch{ isUsersGameBeingRecordedAlready = false; }
 
     if (newMember.id in tempGameRecord && !isUsersGameBeingRecordedAlready){
-        console.log(`SAVE RECORD: ${newMember.displayName} | Game: ${tempGameRecord[newMember.id]["gameName"]} | Server: ${newMember.guild.name}`);
         // Perma save the content in the temp file to user's server's stats.
         await PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember);
     }
@@ -456,8 +455,8 @@ async function GameRecording(oldMember, newMember){
 async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember){
     let whenGameOpened = tempGameRecord[newMember.id]["dateGameOpen"];
     let gameName = tempGameRecord[newMember.id]["gameName"];
-    let totalTimeOpenFor = (Date.now() - whenGameOpened) / 60000;
-    //totalTimeOpenFor = totalTimeOpenFor.toFixed(1);
+    let totalTimeOpenFor = (Date.now() - whenGameOpened) / 1000;
+    console.log(`SAVE RECORD: ${newMember.displayName} | Game: ${tempGameRecord[newMember.id]["gameName"]} | Server: ${newMember.guild.name} | Seconds open for: ${totalTimeOpenFor}`);
 
     delete tempGameRecord[newMember.id];
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
@@ -466,9 +465,9 @@ async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, ne
     var statsFile = require(statsFilePath);
 
     // Ternary, if game exists in server's stats then add total time played to what is stored, if it doesnt then assign time played.
-    gameName in statsFile["Total Minutes Played"] ? 
-    statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor :
-        statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
+    gameName in statsFile["Total Seconds Played"] ? 
+    statsFile["Total Seconds Played"][gameName] += totalTimeOpenFor :
+        statsFile["Total Seconds Played"][gameName] = totalTimeOpenFor;
 
     UpdateJsonFile(statsFilePath, statsFile);
 }
@@ -483,9 +482,12 @@ async function StartNewGameRecording(newMember){
 
 function GetServerStats(guild){
     var serverStatsFilePath = GetStatsFilePath(guild);
+    
+    
     //serverStats = require(serverStatsFilePath);
     //serverStats = JSON.stringify(serverStats);
 
+    // Return the stats file path
     return serverStatsFilePath;
 }
 
