@@ -114,7 +114,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 
         // Give the member the role.
         await newMember.addRole(roleToAddToMember);
-        RecordRoleAdd(roleToAddToMember,serverStatisticsFilePath)
+        RecordRoleAdd(roleToAddToMember,serverStatisticsFilePath);
         //-- TRACK EVENT
 
         console.log(`Added ROLE: ${roleToAddToMember.name} | Member: ${newMember.displayName} | Server: ${newMember.guild.name}.`);
@@ -123,7 +123,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 
         if (!serverSettings.createcategory){console.log("Dont create categories"); return;}
 
-        CreateRoleTextVoiceChannel(newMember, roleToAddToMember)
+        CreateRoleTextVoiceChannel(newMember, roleToAddToMember);
     }
 });
 
@@ -226,7 +226,6 @@ bot.on('message', async(message) => {
             }
 
             var gameToDelete = args.slice(1,args.length).join(" ").toString();
-            //var serverWhitelistPath = `./ServerWhitelists/${message.guild.id}.json`;
             var serverWhitelistPath = GetWhitelistFilePath(message.guild);
             var serverWhitelist = require(serverWhitelistPath);
 
@@ -236,12 +235,12 @@ bot.on('message', async(message) => {
             // Rewrite the updated whitelist to it's file.
             UpdateJsonFile(serverWhitelistPath, serverWhitelist);
 
-            message.channel.send(`**${gameToDelete}** with role **${roleName}** deleted`)
+            message.channel.send(`**${gameToDelete}** with role **${roleName}** deleted`);
 
             break;
 
         case '!gmgames':
-            message.reply("Games list not implemented yet.")
+            message.reply("Games list not implemented yet.");
             break;
         case '!gmstats':
             var serverStats = GetServerStats(message.guild);
@@ -268,12 +267,12 @@ bot.on('message', async(message) => {
                     message.channel.send(`**${settingToChange}** turned **${newSettingValue}**.`);
                 }
             }else{
-                message.reply(`Invalid use of the command. ${settingToChange} is not a setting that can be changed.`)
+                message.reply(`Invalid use of the command. ${settingToChange} is not a setting that can be changed.`);
             }
             break;
 
         case '!gmhelp':
-            message.reply("Help has not been implemented yet. Coming soon.")
+            message.reply("Help has not been implemented yet. Coming soon.");
             break;
     }
 });
@@ -327,17 +326,17 @@ async function OnJoinMessageSend(guild){
     
     If you would like this setting on for your server. Please type "!gmsettings CreateCategory On" in your server.
     This setting can be turned off at any time using "!gmsettings CreateCategory Off"
-    By default this setting is OFF.`
+    By default this setting is OFF.`;
 
     // Send the message to the server owner.
     guild.owner.send(messageContent);
 
-    console.log(`Owner of ${guild.name} has been messaged.`)
+    console.log(`Owner of ${guild.name} has been messaged.`);
 }
 
 // Create role and create voice and text channels for it. (May want to seperate this into two seperate functions. One for creating role and another for creating the text and voice stuff.)
 async function CreateRoleTextVoiceChannel(newMember, roleToAddToMember){
-    var gameNameUserIsPlaying = newMember.presence.game.name
+    var gameNameUserIsPlaying = newMember.presence.game.name;
     // Does the category we are going to create already exist?
     if(newMember.guild.channels.find(x => x.name == gameNameUserIsPlaying)){ return; }
 
@@ -371,7 +370,7 @@ async function CreateRoleTextVoiceChannel(newMember, roleToAddToMember){
 async function InitialiseNewServer(guild){
 
     // Setting up new server's whitelist.
-    var emptyObj = {}
+    var emptyObj = {};
     var ServerWhitelistFilePath = GetWhitelistFilePath(guild);
     UpdateJsonFile(ServerWhitelistFilePath, emptyObj);
 
@@ -388,7 +387,7 @@ async function InitialiseNewServer(guild){
     UpdateJsonFile(serverStatisticsFilePath, obj);
 
     // Setup new server's temp record file system.
-    var obj = {}
+    var obj = {};
     var serverTempRecordFilePath = GetTempRecordFilePath(guild);
     UpdateJsonFile(serverTempRecordFilePath, obj);
 
@@ -405,7 +404,7 @@ async function DeleteServerRecords(guild){
     // Delete the server's folder.
     var ServersFolder = `./Servers/${guild.id}`;
     fs.remove(ServersFolder, err => {
-        if (err) return console.error(err)
+        if (err) return console.error(err);
         console.log("Deleted server's records.");
       });
 
@@ -448,10 +447,9 @@ async function GameRecording(oldMember, newMember){
         // Perma save the content in the temp file to user's server's stats.
         await PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember);
     }
+    // If the member's presence is now nothing, return out.
     if (newMember.presence.game == null){return;}
     // Start recording the new game
-    //console.log(`NEW Record ${newMember.displayName} | Game: ${newMember.presence.game.name} | Server: ${newMember.guild.name}.`);
-    // If the member's presence is now nothing, return out.
     await StartNewGameRecording(newMember);
 }
 
