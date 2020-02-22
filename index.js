@@ -245,7 +245,7 @@ bot.on('message', async(message) => {
         case '!gmstats':
             var serverStats = GetServerStats(message.guild);
             //var statsString = JSON.stringify(serverStats);
-            message.channel.send("Server Stats", {files: [serverStats]});
+            message.channel.send(`${message.guild.name}'s Game Stats in Seconds:`, {files: [serverStats]});
             break;
 
         case '!gmsettings':
