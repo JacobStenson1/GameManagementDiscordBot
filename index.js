@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const jsonfile = require('jsonfile');
 const fs = require('fs-extra');
+var json2xls = require('json2xls');
 
 const {prefix, token, botName} = require('./config.json');
 
@@ -245,7 +246,7 @@ bot.on('message', async(message) => {
         case '!gmstats':
             var serverStats = GetServerStats(message.guild);
             //var statsString = JSON.stringify(serverStats);
-            message.channel.send(`${message.guild.name}'s Game Stats in Seconds:`, {files: [serverStats]});
+            message.channel.send(`${message.guild.name}'s Game Stats in Minutes:`, {files: [serverStats]});
             break;
 
         case '!gmsettings':
@@ -380,7 +381,7 @@ async function InitialiseNewServer(guild){
     UpdateJsonFile(serverSettingsPath, newServerSettingsObj);
 
     // Setup new server's statistics.
-    var obj = {"Total Seconds Played":{},
+    var obj = {"Total Minutes Played":{},
                 "Number of times roles added to users":{}
                 }
     var serverStatisticsFilePath = GetStatsFilePath(guild);
@@ -455,8 +456,8 @@ async function GameRecording(oldMember, newMember){
 async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember){
     let whenGameOpened = tempGameRecord[newMember.id]["dateGameOpen"];
     let gameName = tempGameRecord[newMember.id]["gameName"];
-    let totalTimeOpenFor = (Date.now() - whenGameOpened) / 1000;
-    console.log(`SAVE RECORD: ${newMember.displayName} | Game: ${tempGameRecord[newMember.id]["gameName"]} | Server: ${newMember.guild.name} | Seconds open for: ${totalTimeOpenFor}`);
+    let totalTimeOpenFor = (Date.now() - whenGameOpened) / 60000;
+    console.log(`SAVE RECORD: ${newMember.displayName} | Game: ${tempGameRecord[newMember.id]["gameName"]} | Server: ${newMember.guild.name} | Minutes open for: ${totalTimeOpenFor}`);
 
     delete tempGameRecord[newMember.id];
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
@@ -465,9 +466,11 @@ async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, ne
     var statsFile = require(statsFilePath);
 
     // Ternary, if game exists in server's stats then add total time played to what is stored, if it doesnt then assign time played.
-    gameName in statsFile["Total Seconds Played"] ? 
-    statsFile["Total Seconds Played"][gameName] += totalTimeOpenFor :
-        statsFile["Total Seconds Played"][gameName] = totalTimeOpenFor;
+    if(gameName in statsFile["Total Minutes Played"]){
+        statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor;
+    }else{
+        statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
+    }
 
     UpdateJsonFile(statsFilePath, statsFile);
 }
