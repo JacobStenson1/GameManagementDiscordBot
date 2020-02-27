@@ -55,10 +55,6 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
     if(oldMember.presence.game != newMember.presence.game){
         // Return out if member is a bot..
         if(newMember.user.bot){ return; }
-        //console.log("\n");
-        //console.log(`${newMember.displayName}'s presence in ${newMember.guild.name} presence changed.`);
-        //console.log(`${newMember.displayName}'s presence is now:`);
-        //console.log(newMember.presence);
 
         // Record new game open (ignores whitelist).
         GameRecording(oldMember,newMember);
@@ -71,23 +67,11 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         let temp = GetWhitelistFilePath(newMember.guild);
         let serverWhitelist = require(temp);
 
-        // TRACK EVENT (game opened)
-        //  (how many times has Battlefield 5 been opened for example)
-        // Games opened in past day
-        // Games opened in past week
-        // Games opened in past month
-
-        //RecordGameOpen(gameNameUserIsPlaying,serverStatisticsFilePath);
-
-
         roleFromWhitelist = serverWhitelist[gameNameUserIsPlaying];
         let roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
         var roleToAddToMember;
 
         let serverSettings = require(GetSettingsFilePath(newMember.guild));
-        
-        //console.log(`The game they are now playing is: ${gameNameUserIsPlaying}`);
-        //console.log(`Is their game in the server's whitelist? ${gameNameUserIsPlaying in serverWhitelist}`);
 
         // Is the game the user is playing in the whitelist? If it isn't do not continue.
         if (!(gameNameUserIsPlaying in serverWhitelist)){ return; }
