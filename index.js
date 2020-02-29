@@ -62,13 +62,13 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         // Recording done, if presence is nothing or spotify now, then just return out.
         if(newMember.presence.game == null || (newMember.presence.game == "Spotify")){return;}
 
-        // Is the game the user is playing in the whitelist? If it isn't do not continue.
-        if (!(gameNameUserIsPlaying in serverWhitelist)){ return; }
-
         let gameNameUserIsPlaying = newMember.presence.game.name;
         var serverStatisticsFilePath = GetStatsFilePath(newMember.guild);
         let temp = GetWhitelistFilePath(newMember.guild);
         let serverWhitelist = require(temp);
+
+        // Is the game the user is playing in the whitelist? If it isn't do not continue.
+        if (!(gameNameUserIsPlaying in serverWhitelist)){ return; }
 
         roleFromWhitelist = serverWhitelist[gameNameUserIsPlaying];
         let roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
