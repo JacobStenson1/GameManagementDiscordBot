@@ -127,23 +127,6 @@ bot.on('message', async(message) => {
     let args = message.content.split(" ");
 
     switch(args[0]){
-        case '!chart':
-             // https://quickchart.io/chart?c=%7Btype:%27pie%27,data:%7Blabels:[%27Visual%20Studio%20Code%27,%27RuneLite%27,%20%27Custom%20Status%27,%27Spotify%27,%20%27League%20of%20Legends%27],%20datasets:[%7Bdata:[778,228,13858,10396,14925]%7D]%7D%7D
-             
-            var data = `{type:"bar",data:{labels:["Visual%20Studio%20Code","Rune%20Lite","League%20of%20Legends","Minecraft%20Launcher","PLAYERUNKNOWN'S%20BATTLEGROUNDS"],datasets:[{label:'Minutes%20Played',data:[927,228,14925,4266,387]}]}}`;
-
-            var url = `https://quickchart.io/chart?c=${data}&bkg=white`
-
-             
-            //test - https://quickchart.io/chart?backgroundColor=white&c={type:"pie",data:{labels:["January","February","March","April","May"],datasets:[{data:[50,60,70,180,190]}]}}
-            //
-
-            const embed = new Discord.RichEmbed()
-             .setColor(0x00AE86)
-             .setImage(url)
-            message.channel.send({embed});
-            
-            break;
         case '!gmtest':
             message.channel.send("Bot is running!");
             break;
@@ -245,8 +228,7 @@ bot.on('message', async(message) => {
             break;
         case '!gmstats':
             var serverStats = GetServerStats(message.guild);
-            //var statsString = JSON.stringify(serverStats);
-            message.channel.send(`${message.guild.name}'s Game Stats in Minutes:`, {files: [serverStats]});
+            message.channel.send(`**${message.guild.name}**'s Presence Stats`, serverStats);
             break;
 
         case '!gmsettings':
@@ -485,16 +467,72 @@ async function StartNewGameRecording(newMember){
 
 function GetServerStats(guild){
     var serverStatsFilePath = GetStatsFilePath(guild);
+    var stats = require(serverStatsFilePath);
+
+    const minStats = stats['Total Minutes Played']
+
+    var labelsArr = [];
+    var dataArr = [];
+    for (var key in minStats) {
+        if (minStats.hasOwnProperty(key)) {
+            //console.log(key + " -> " + minStats[key]);
+            var formattedKey = key.replace(/\s+/g, '%20')
+            labelsArr.push(`"${formattedKey}"`);
+            dataArr.push(parseInt(minStats[key]));
+        }
+    }
+    // Sort the data and it's labels into accending order.
+    ReverseBubbleSort(dataArr,labelsArr);
+
+    // Check to see the top game and if it's more than an hour? If so, is it more than a day? if yes convert all numbers to days
+    var values = ConvertDataToBetterUnitOfTime(dataArr)
+    dataArr = values[0];
+    minHourDay = values[1];
+
+    const setSize = 15;
+    while (labelsArr.length > setSize) {
+        labelsArr.pop();
+        dataArr.pop();
+    }
+
+    var chartData = `{type:"bar",data:{labels:[${labelsArr}],datasets:[{label:'${minHourDay}%20Played',data:[${dataArr}]}]}}` 
     
-    
-    //https://quickchart.io/chart?c={type:'pie',data:{labels:['January','February','March','April','May'], datasets:[{data:[50,60,70,180,190]}]}}
+    var url = `https://quickchart.io/chart?c=${chartData}&bkg=white&"width":5000&"height":5000`;
 
+    const statsEmbeded = new Discord.RichEmbed()
+             .setColor(0x00AE86)
+             .setImage(url)
 
-    //serverStats = require(serverStatsFilePath);
-    //serverStats = JSON.stringify(serverStats);
+    // Return the rich embed containing the stats image.
+    return statsEmbeded;
+}
 
-    // Return the stats file path
-    return serverStatsFilePath;
+function ConvertDataToBetterUnitOfTime(dataArr){
+    var minHourDay;
+    const minInHour = (dataArr[0] / 60)
+    if(minInHour > 1){
+        // Largest time of game in server is more than one hour.
+        if((dataArr[0] / 1440) > 1){
+            // Largest time of game in server is more than one day.
+            for (let index = 0; index < dataArr.length; index++) {
+                // Set iteration to how many days the minutes are.
+                dataArr[index] = dataArr[index] / 1440;
+            }
+            minHourDay = 'Days';   
+        }else{
+            // Not more than one day but more than one hour
+            for (let index = 0; index < dataArr.length; index++) {
+                // Set iteration to how many hours the minutes are.
+                dataArr[index] = dataArr[index] / 60;
+            }
+            minHourDay = 'Hours'
+        }
+    }else{
+        // Time is not more than one hour
+        minHourDay = 'Minutes'
+        return [dataArr,minHourDay];
+    }
+    return [dataArr,minHourDay];
 }
 
 // Smaller functions -------
@@ -524,6 +562,25 @@ async function UpdateJsonFile(filePath, content){
     await jsonfile.writeFile(filePath, content, { spaces: 2, EOL: '\r\n' }, function(err){
         if(err) throw(err);
     });
+}
+
+function ReverseBubbleSort(inputArr,labels){
+    let len = inputArr.length;
+    for (let i = 0; i < len; i++) {
+        for (let j = 0; j < len; j++) {
+            if (inputArr[j] < inputArr[j + 1]) {
+                let tmp = inputArr[j];
+                let tmpLabel = labels[j];
+
+                inputArr[j] = inputArr[j + 1];
+                labels[j] = labels[j+1];
+
+                inputArr[j + 1] = tmp;
+                labels[j + 1] = tmpLabel;
+            }
+        }
+    }
+    return inputArr,labels;
 }
 
 bot.login(token);
