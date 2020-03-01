@@ -1,7 +1,6 @@
 const Discord = require('discord.js');
 const jsonfile = require('jsonfile');
 const fs = require('fs-extra');
-var json2xls = require('json2xls');
 
 const {prefix, token, botName} = require('./config.json');
 
@@ -128,6 +127,23 @@ bot.on('message', async(message) => {
     let args = message.content.split(" ");
 
     switch(args[0]){
+        case '!chart':
+             // https://quickchart.io/chart?c=%7Btype:%27pie%27,data:%7Blabels:[%27Visual%20Studio%20Code%27,%27RuneLite%27,%20%27Custom%20Status%27,%27Spotify%27,%20%27League%20of%20Legends%27],%20datasets:[%7Bdata:[778,228,13858,10396,14925]%7D]%7D%7D
+             
+            var data = `{type:"bar",data:{labels:["Visual%20Studio%20Code","Rune%20Lite","League%20of%20Legends","Minecraft%20Launcher","PLAYERUNKNOWN'S%20BATTLEGROUNDS"],datasets:[{label:'Minutes%20Played',data:[927,228,14925,4266,387]}]}}`;
+
+            var url = `https://quickchart.io/chart?c=${data}&bkg=white`
+
+             
+            //test - https://quickchart.io/chart?backgroundColor=white&c={type:"pie",data:{labels:["January","February","March","April","May"],datasets:[{data:[50,60,70,180,190]}]}}
+            //
+
+            const embed = new Discord.RichEmbed()
+             .setColor(0x00AE86)
+             .setImage(url)
+            message.channel.send({embed});
+            
+            break;
         case '!gmtest':
             message.channel.send("Bot is running!");
             break;
@@ -471,6 +487,9 @@ function GetServerStats(guild){
     var serverStatsFilePath = GetStatsFilePath(guild);
     
     
+    //https://quickchart.io/chart?c={type:'pie',data:{labels:['January','February','March','April','May'], datasets:[{data:[50,60,70,180,190]}]}}
+
+
     //serverStats = require(serverStatsFilePath);
     //serverStats = JSON.stringify(serverStats);
 
