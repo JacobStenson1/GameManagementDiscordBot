@@ -402,7 +402,7 @@ async function DeleteServerRecords(guild){
 
 // --------------------------------------
 //
-//       STATISTIC TRACKING SYSTEM
+//       STATISTIC TRACKING FUNCTIONS / SYSTEM
 //
 // --------------------------------------
 
@@ -475,7 +475,6 @@ function GetServerStats(guild){
     var dataArr = [];
     for (var key in minStats) {
         if (minStats.hasOwnProperty(key)) {
-            //console.log(key + " -> " + minStats[key]);
             var formattedKey = key.replace(/\s+/g, '%20')
             labelsArr.push(`"${formattedKey}"`);
             dataArr.push(parseInt(minStats[key]));
@@ -496,7 +495,6 @@ function GetServerStats(guild){
     }
 
     var chartData = `{type:"bar",data:{labels:[${labelsArr}],datasets:[{label:'${minHourDay}%20Played',data:[${dataArr}]}]}}` 
-    
     var url = `https://quickchart.io/chart?c=${chartData}&bkg=white&"width":5000&"height":5000`;
 
     const statsEmbeded = new Discord.RichEmbed()
