@@ -108,3 +108,4 @@ config.json
 /Servers
 ListOfServers.json
 notes.txt
+ignoredFile.js

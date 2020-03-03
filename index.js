@@ -227,8 +227,19 @@ bot.on('message', async(message) => {
             message.reply("Games list not implemented yet.");
             break;
         case '!gmstats':
-            var serverStats = GetServerStats(message.guild);
-            message.channel.send(`**${message.guild.name}**'s Presence Stats`, serverStats);
+            // Use case either !gmstats for page 1 || !gmstats [Desired Page]
+            var returnedData;
+            if(args[1]){
+                // user chose a page
+                console.log(`Desired Page: ${args[1]}`);
+                returnedData = GetServerStats(message.guild,args[1]);
+            }else{
+                returnedData = GetServerStats(message.guild,1);
+            }
+            
+            let serverStats = returnedData[0];
+            let totalStatsPages = returnedData[1];
+            message.channel.send(`**${message.guild.name}**'s Presence Stats - Page: 1/${totalStatsPages}`, serverStats);
             break;
 
         case '!gmsettings':
@@ -465,9 +476,11 @@ async function StartNewGameRecording(newMember){
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
 }
 
-function GetServerStats(guild){
+function GetServerStats(guild,desiredPage){
     var serverStatsFilePath = GetStatsFilePath(guild);
     var stats = require(serverStatsFilePath);
+
+    var itemsPerPage = 15;
 
     const minStats = stats['Total Minutes Played']
 
@@ -475,6 +488,7 @@ function GetServerStats(guild){
     var dataArr = [];
     for (var key in minStats) {
         if (minStats.hasOwnProperty(key)) {
+            // Replace spaces in the game name with %20 for spaces in URLs.
             var formattedKey = key.replace(/\s+/g, '%20')
             labelsArr.push(`"${formattedKey}"`);
             dataArr.push(parseInt(minStats[key]));
@@ -488,8 +502,23 @@ function GetServerStats(guild){
     dataArr = values[0];
     minHourDay = values[1];
 
-    const setSize = 15;
-    while (labelsArr.length > setSize) {
+    let totalPages = Math.ceil(labelsArr.length / itemsPerPage);
+    console.log(totalPages)
+
+    //console.log(labelsArr);
+    //console.log(dataArr);
+
+    var getContentFrom = (desiredPage-1) * itemsPerPage;
+    var getContentTo = desiredPage * itemsPerPage;
+
+    console.log(getContentFrom);
+    console.log(getContentTo);
+
+    // Remove all unless their iteration in the array is between getContentFrom and getContentTo
+
+    //return;
+
+    while (labelsArr.length > itemsPerPage) {
         labelsArr.pop();
         dataArr.pop();
     }
@@ -502,7 +531,7 @@ function GetServerStats(guild){
              .setImage(url)
 
     // Return the rich embed containing the stats image.
-    return statsEmbeded;
+    return [statsEmbeded,totalPages];
 }
 
 function ConvertDataToBetterUnitOfTime(dataArr){
