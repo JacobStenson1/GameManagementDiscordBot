@@ -539,17 +539,16 @@ function GetServerStats(guild,desiredPage){
 
 function ConvertDataToBetterUnitOfTime(dataArr){
     var minHourDay;
-    // Get how many hours are in the most played game.
-    const minInHour = (dataArr[0] / 60)
+
     // Has the most played game been played for more than one hour?
-    if(minInHour > 1){
+    if((dataArr[0] / 60) > 1){
         
         // Has the most played game been played for more than one day?
         if((dataArr[0] / 1440) > 1){
 
             // Has the most played game been played for more than a week?
             if((dataArr[0] / 10080) > 1){
-                // Convert all times of games to be weeks
+                // Convert all times of games to be weeks.
                 for (let index = 0; index < dataArr.length; index++) {
                     // Set current iteration to how many weeks the minutes are.
                     dataArr[index] = dataArr[index] / 10080;
@@ -568,7 +567,7 @@ function ConvertDataToBetterUnitOfTime(dataArr){
                 minHourDay = 'Days'; 
             }  
         }else{
-            // Largest time is not more than one day but more than one hour
+            // Largest time is not more than one day but more than one hour.
             for (let index = 0; index < dataArr.length; index++) {
                 // Set current iteration to how many hours the minutes are.
                 dataArr[index] = dataArr[index] / 60;
@@ -577,11 +576,12 @@ function ConvertDataToBetterUnitOfTime(dataArr){
             minHourDay = 'Hours'
         }
     }else{
-        // Time is NOT more than one hour
+        // Time is NOT more than one hour.
         // Set the value for the chart's key.
         minHourDay = 'Minutes'
         return [dataArr,minHourDay];
     }
+    // Return the data for each game and the graph's key.
     return [dataArr,minHourDay];
 }
 
