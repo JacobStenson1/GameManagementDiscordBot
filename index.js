@@ -699,4 +699,8 @@ function ReverseBubbleSort(inputArr,labels){
     return inputArr,labels;
 }
 
+process.on('unhandledRejection', function (err) {
+
+});
+
 bot.login(token);
