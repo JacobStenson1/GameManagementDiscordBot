@@ -229,17 +229,20 @@ bot.on('message', async(message) => {
         case '!gmstats':
             // Use case either !gmstats for page 1 || !gmstats [Desired Page]
             var returnedData;
+            var page;
             if(args[1]){
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
-                returnedData = GetServerStats(message.guild,args[1]);
+                page = args[1];
+                returnedData = GetServerStats(message.guild,page);
             }else{
+                page = 1;
                 returnedData = GetServerStats(message.guild,1);
             }
             
             let serverStats = returnedData[0];
             let totalStatsPages = returnedData[1];
-            message.channel.send(`**${message.guild.name}**'s Presence Stats - Page: 1/${totalStatsPages}`, serverStats);
+            message.channel.send(`**${message.guild.name}**'s Presence Stats - Page: ${page}/${totalStatsPages}`, serverStats);
             break;
 
         case '!gmsettings':
@@ -524,7 +527,7 @@ function GetServerStats(guild,desiredPage){
     }
 
     var chartData = `{type:"bar",data:{labels:[${labelsArr}],datasets:[{label:'${minHourDay}%20Played',data:[${dataArr}]}]}}` 
-    var url = `https://quickchart.io/chart?c=${chartData}&bkg=white&"width":5000&"height":5000`;
+    var url = `https://quickchart.io/chart?c=${chartData}&bkg=white`;
 
     const statsEmbeded = new Discord.RichEmbed()
              .setColor(0x00AE86)
@@ -536,26 +539,46 @@ function GetServerStats(guild,desiredPage){
 
 function ConvertDataToBetterUnitOfTime(dataArr){
     var minHourDay;
+    // Get how many hours are in the most played game.
     const minInHour = (dataArr[0] / 60)
+    // Has the most played game been played for more than one hour?
     if(minInHour > 1){
-        // Largest time of game in server is more than one hour.
+        
+        // Has the most played game been played for more than one day?
         if((dataArr[0] / 1440) > 1){
-            // Largest time of game in server is more than one day.
-            for (let index = 0; index < dataArr.length; index++) {
-                // Set iteration to how many days the minutes are.
-                dataArr[index] = dataArr[index] / 1440;
-            }
-            minHourDay = 'Days';   
+
+            // Has the most played game been played for more than a week?
+            if((dataArr[0] / 10080) > 1){
+                // Convert all times of games to be weeks
+                for (let index = 0; index < dataArr.length; index++) {
+                    // Set current iteration to how many weeks the minutes are.
+                    dataArr[index] = dataArr[index] / 10080;
+                }
+                // Set the value for the chart's key.
+                minHourDay = 'Weeks';
+            }else{
+                // Most played game has been played for more than one day but not more than one week.
+                
+                // Convert all times of games to be days
+                for (let index = 0; index < dataArr.length; index++) {
+                    // Set current iteration to how many days the minutes are.
+                    dataArr[index] = dataArr[index] / 1440;
+                }
+                // Set the value for the chart's key.
+                minHourDay = 'Days'; 
+            }  
         }else{
-            // Not more than one day but more than one hour
+            // Largest time is not more than one day but more than one hour
             for (let index = 0; index < dataArr.length; index++) {
-                // Set iteration to how many hours the minutes are.
+                // Set current iteration to how many hours the minutes are.
                 dataArr[index] = dataArr[index] / 60;
             }
+            // Set the value for the chart's key.
             minHourDay = 'Hours'
         }
     }else{
-        // Time is not more than one hour
+        // Time is NOT more than one hour
+        // Set the value for the chart's key.
         minHourDay = 'Minutes'
         return [dataArr,minHourDay];
     }
