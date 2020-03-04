@@ -242,7 +242,9 @@ bot.on('message', async(message) => {
             
             let serverStats = returnedData[0];
             let totalStatsPages = returnedData[1];
-            message.channel.send(`**${message.guild.name}**'s Presence Stats - Page: ${page}/${totalStatsPages}`, serverStats);
+
+            SendStatsToServer(message,serverStats,totalStatsPages,page);
+
             break;
 
         case '!gmsettings':
@@ -580,6 +582,73 @@ function ConvertDataToBetterUnitOfTime(dataArr){
     }
     // Return the data for each game and the graph's key.
     return [dataArr,minHourDay];
+}
+
+function SendStatsToServer(message,serverStats,totalStatsPages,page){
+    const leftArrow = "⬅️";
+    const rightArrow = "➡️";
+
+    // Send the chart to the server in a richembed.
+    message.channel.send(`**${message.guild.name}**'s Presence Stats - Page: ${page}/${totalStatsPages}`, serverStats).then(sentMessage => {
+        
+        // Show only certain arrows for certain pages.
+        //  React with left arrow for page 1.
+        //  React with right arrow if on last page.
+        //  React with left and right for any other pages.
+        
+        // First page
+        if (page == 1){
+            sentMessage.react(rightArrow);
+        // Last page
+        }else if (page == totalStatsPages){
+            sentMessage.react(leftArrow);
+        // Not first or last page.
+        }else{
+            sentMessage.react(leftArrow).then(() => sentMessage.react(rightArrow));
+        }        
+
+        //Define a filter for reactions.
+        const filter = (reaction, user) => {
+            return [leftArrow, rightArrow].includes(reaction.emoji.name) && user.id === message.author.id;
+        };
+
+        // Wait for reactions on the richembed message sent.
+        sentMessage.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
+        .then(collected => {
+            const reaction = collected.first();
+            var newPage;
+
+            // If the user reacted with a left arrow (Wanting to move to the previous page)
+            if (reaction.emoji.name === leftArrow){
+                // Delete the graph rich embed message.
+                sentMessage.delete();
+
+                // Send new message containing graph for previous page
+                newPage = page - 1;
+
+                const returnedData = GetServerStats(message.guild,newPage);
+                let serverStats = returnedData[0];
+                let totalStatsPages = returnedData[1];
+
+                SendStatsToServer(message,serverStats,totalStatsPages,newPage);
+            }
+            else{
+                // Delete the graph rich embed message.
+                sentMessage.delete();
+
+                // Send new message containing graph for next page
+                newPage = page + 1;
+
+                const returnedData = GetServerStats(message.guild,newPage);
+                let serverStats = returnedData[0];
+                let totalStatsPages = returnedData[1];
+
+                SendStatsToServer(message,serverStats,totalStatsPages,page+1);
+            }
+        });
+    });
+
+    return;
 }
 
 // Smaller functions -------
