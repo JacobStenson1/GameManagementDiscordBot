@@ -501,20 +501,17 @@ function GetServerStats(guild,desiredPage){
     ReverseBubbleSort(dataArr,labelsArr);
 
     let totalPages = Math.ceil(labelsArr.length / itemsPerPage);
-    console.log(totalPages)
-
-    //console.log(labelsArr);
-    //console.log(dataArr);
 
     var getContentFrom = (desiredPage-1) * itemsPerPage;
     var getContentTo = desiredPage * itemsPerPage;
 
-    console.log(getContentFrom);
-    console.log(getContentTo);
+    // Remove all content in labelsArr outside of iterations between getContentFrom - getContentTo
+    labelsArr.splice(0,getContentFrom);
+    labelsArr.splice(getContentTo,(labelsArr.length-getContentTo));
 
-    // Remove all unless their iteration in the array is between getContentFrom and getContentTo
-
-    //return;
+    // Remove all content in dataArr outside of iterations between getContentFrom - getContentTo
+    dataArr.splice(0,getContentFrom);
+    dataArr.splice(getContentTo,(labelsArr.length-getContentTo));
 
     // Check to see the top game and if it's more than an hour? If so, is it more than a day? if yes convert all numbers to days
     var values = ConvertDataToBetterUnitOfTime(dataArr)
