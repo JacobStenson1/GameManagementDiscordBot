@@ -23,7 +23,8 @@ bot.on('guildCreate', async(guild) => {
     var serverDir = `./Servers/${guild.id}`;
     if (!fs.existsSync(serverDir)){
         fs.mkdirSync(serverDir);
-
+        fs.mkdirSync(`${serverDir}/statistics`);
+        
         await InitialiseNewServer(guild);
 
         console.log("Created new server directory.");
@@ -62,7 +63,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         if(newMember.presence.game == null || (newMember.presence.game == "Spotify")){return;}
 
         let gameNameUserIsPlaying = newMember.presence.game.name;
-        var serverStatisticsFilePath = GetStatsFilePath(newMember.guild);
+        var serverStatisticsFilePath = GetTotalStatsFilePath(newMember.guild);
         let temp = GetWhitelistFilePath(newMember.guild);
         let serverWhitelist = require(temp);
 
@@ -243,6 +244,11 @@ bot.on('message', async(message) => {
             let serverStats = returnedData[0];
             let totalStatsPages = returnedData[1];
 
+            // Page number displayed in text on Discord cannot be more than the total pages.
+            if (page > totalStatsPages){
+                page = totalStatsPages;
+            }
+
             SendStatsToServer(message,serverStats,totalStatsPages,page);
 
             break;
@@ -382,8 +388,20 @@ async function InitialiseNewServer(guild){
     var obj = {"Total Minutes Played":{},
                 "Number of times roles added to users":{}
                 }
-    var serverStatisticsFilePath = GetStatsFilePath(guild);
-    UpdateJsonFile(serverStatisticsFilePath, obj);
+    var serverTotalStatisticsFilePath = GetTotalStatsFilePath(guild);
+    UpdateJsonFile(serverTotalStatisticsFilePath, obj);
+
+    // Setup Day Stats
+    var serverDayStatsFilePath = GetDayStatsFilePath(guild);
+    UpdateJsonFile(serverDayStatsFilePath, obj);
+
+    // Setup Week Stats
+    var serverWeekStatsFilePath = GetWeekStatsFilePath(guild);
+    UpdateJsonFile(serverWeekStatsFilePath, obj);
+
+    // Setup Month Stats
+    var serverMonthStatsFilePath = GetMonthStatsFilePath(guild);
+    UpdateJsonFile(serverMonthStatsFilePath, obj);
 
     // Setup new server's temp record file system.
     var obj = {};
@@ -460,7 +478,7 @@ async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, ne
     delete tempGameRecord[newMember.id];
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
 
-    let statsFilePath = GetStatsFilePath(newMember.guild);
+    let statsFilePath = GetTotalStatsFilePath(newMember.guild);
     var statsFile = require(statsFilePath);
 
     // Ternary, if game exists in server's stats then add total time played to what is stored, if it doesnt then assign time played.
@@ -469,8 +487,13 @@ async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, ne
     }else{
         statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
     }
-
     UpdateJsonFile(statsFilePath, statsFile);
+
+    // Update day stats
+
+    // Update week stats
+
+    // Update month stats
 }
 
 async function StartNewGameRecording(newMember){
@@ -482,7 +505,7 @@ async function StartNewGameRecording(newMember){
 }
 
 function GetServerStats(guild,desiredPage){
-    var serverStatsFilePath = GetStatsFilePath(guild);
+    var serverStatsFilePath = GetTotalStatsFilePath(guild);
     var stats = require(serverStatsFilePath);
 
     var itemsPerPage = 15;
@@ -503,6 +526,7 @@ function GetServerStats(guild,desiredPage){
     ReverseBubbleSort(dataArr,labelsArr);
 
     let totalPages = Math.ceil(labelsArr.length / itemsPerPage);
+    console.log(`total pages: ${totalPages}`)
 
     var getContentFrom = (desiredPage-1) * itemsPerPage;
     var getContentTo = desiredPage * itemsPerPage;
@@ -596,8 +620,11 @@ function SendStatsToServer(message,serverStats,totalStatsPages,page){
         //  React with right arrow if on last page.
         //  React with left and right for any other pages.
         
+        // If the total pages are 1 or 0 then dont react.
+        if (totalStatsPages == 1 || totalStatsPages == 0){
+            // pass
         // First page
-        if (page == 1){
+        }else if (page == 1){
             sentMessage.react(rightArrow);
         // Last page
         }else if (page == totalStatsPages){
@@ -653,18 +680,37 @@ function SendStatsToServer(message,serverStats,totalStatsPages,page){
 
 // Smaller functions -------
 
-function GetStatsFilePath(guild){
-    return `./Servers/${guild.id}/statistics.json`;
+// Function for getting a server's total statistics file path.
+function GetTotalStatsFilePath(guild){
+    return `./Servers/${guild.id}/statistics/TotalStats.json`;
 }
 
+// Function for getting a server's day statistics file path.
+function GetDayStatsFilePath(guild){
+    return `./Servers/${guild.id}/statistics/DayStats.json`;
+}
+
+// Function for getting a server's weeks statistics file path.
+function GetWeekStatsFilePath(guild){
+    return `./Servers/${guild.id}/statistics/WeekStats.json`;
+}
+
+// Function for getting a server's month statistics file path.
+function GetMonthStatsFilePath(guild){
+    return `./Servers/${guild.id}/statistics/MonthStats.json`;
+}
+
+// Function for getting a server's settings file path.
 function GetSettingsFilePath(guild){
     return `./Servers/${guild.id}/settings.json`;
 }
 
+// Function for getting a server's whitelist file path.
 function GetWhitelistFilePath(guild){
     return `./Servers/${guild.id}/whitelist.json`;
 }
 
+// Function for getting a server's temporary record file path.
 function GetTempRecordFilePath(guild){
     return `./Servers/${guild.id}/tempRecord.json`;
 }
