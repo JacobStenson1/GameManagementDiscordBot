@@ -235,14 +235,41 @@ bot.on('message', async(message) => {
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
                 page = args[1];
-                returnedData = GetServerStats(message.guild,page);
+                returnedData = GetServerStats(message.guild,page,"total");
             }else{
                 page = 1;
-                returnedData = GetServerStats(message.guild,1);
+                returnedData = GetServerStats(message.guild,1,"total");
             }
             
-            let serverStats = returnedData[0];
-            let totalStatsPages = returnedData[1];
+            var serverStats = returnedData[0];
+            var totalStatsPages = returnedData[1];
+
+            // Page number displayed in text on Discord cannot be more than the total pages.
+            if (page > totalStatsPages){
+                page = totalStatsPages;
+            }
+
+            SendStatsToServer(message,serverStats,totalStatsPages,page);
+
+            break;
+
+        case '!gmstatsday':
+            // Send the stats for the current day
+            var returnedData;
+            var page;
+
+            if(args[1]){
+                // user chose a page
+                console.log(`Desired Page: ${args[1]}`);
+                page = args[1];
+                returnedData = GetServerStats(message.guild,page,"day");
+            }else{
+                page = 1;
+                returnedData = GetServerStats(message.guild,1,"day");
+            }
+            
+            var serverStats = returnedData[0];
+            var totalStatsPages = returnedData[1];
 
             // Page number displayed in text on Discord cannot be more than the total pages.
             if (page > totalStatsPages){
@@ -504,9 +531,28 @@ async function StartNewGameRecording(newMember){
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
 }
 
-function GetServerStats(guild,desiredPage){
-    var serverStatsFilePath = GetTotalStatsFilePath(guild);
-    var stats = require(serverStatsFilePath);
+function GetServerStats(guild,desiredPage,whichStat){
+
+    var serverStatsFilePath;
+    var stats;
+
+    if (whichStat == "total"){
+        serverStatsFilePath = GetTotalStatsFilePath(guild);
+        stats = require(serverStatsFilePath);
+
+    }else if(whichStat == "day"){
+        serverStatsFilePath = GetDayStatsFilePath(guild);
+        stats = require(serverStatsFilePath);
+
+    }else if(whichStat == "week"){
+
+    }else if(whichStat == "month"){
+
+    }else{
+        console.log("Error which whichStat.");
+    }
+
+    
 
     var itemsPerPage = 15;
 
@@ -526,7 +572,6 @@ function GetServerStats(guild,desiredPage){
     ReverseBubbleSort(dataArr,labelsArr);
 
     let totalPages = Math.ceil(labelsArr.length / itemsPerPage);
-    console.log(`total pages: ${totalPages}`)
 
     var getContentFrom = (desiredPage-1) * itemsPerPage;
     var getContentTo = desiredPage * itemsPerPage;
@@ -745,8 +790,8 @@ function ReverseBubbleSort(inputArr,labels){
     return inputArr,labels;
 }
 
-process.on('unhandledRejection', function (err) {
+/* process.on('unhandledRejection', function (err) {
 
-});
+}); */
 
 bot.login(token);
