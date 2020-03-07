@@ -227,6 +227,8 @@ bot.on('message', async(message) => {
         case '!gmgames':
             message.reply("Games list not implemented yet.");
             break;
+
+        // STATISTICS RELATED COMMANDS...
         case '!gmstats':
             // Use case either !gmstats for page 1 || !gmstats [Desired Page]
             var returnedData;
@@ -249,8 +251,7 @@ bot.on('message', async(message) => {
                 page = totalStatsPages;
             }
 
-            SendStatsToServer(message,serverStats,totalStatsPages,page);
-
+            SendStatsToServer(message,serverStats,totalStatsPages,page,"total");
             break;
 
         case '!gmstatsday':
@@ -276,10 +277,62 @@ bot.on('message', async(message) => {
                 page = totalStatsPages;
             }
 
-            SendStatsToServer(message,serverStats,totalStatsPages,page);
-
+            SendStatsToServer(message,serverStats,totalStatsPages,page,"day");
             break;
 
+        case '!gmstatsweek':
+            // Send the stats for the current day
+            var returnedData;
+            var page;
+
+            if(args[1]){
+                // user chose a page
+                console.log(`Desired Page: ${args[1]}`);
+                page = args[1];
+                returnedData = GetServerStats(message.guild,page,"week");
+            }else{
+                page = 1;
+                returnedData = GetServerStats(message.guild,1,"week");
+            }
+            
+            var serverStats = returnedData[0];
+            var totalStatsPages = returnedData[1];
+
+            // Page number displayed in text on Discord cannot be more than the total pages.
+            if (page > totalStatsPages){
+                page = totalStatsPages;
+            }
+
+            SendStatsToServer(message,serverStats,totalStatsPages,page,"week");
+            break;
+
+        case '!gmstatsmonth':
+            // Send the stats for the current day
+            var returnedData;
+            var page;
+
+            if(args[1]){
+                // user chose a page
+                console.log(`Desired Page: ${args[1]}`);
+                page = args[1];
+                returnedData = GetServerStats(message.guild,page,"month");
+            }else{
+                page = 1;
+                returnedData = GetServerStats(message.guild,1,"month");
+            }
+            
+            var serverStats = returnedData[0];
+            var totalStatsPages = returnedData[1];
+
+            // Page number displayed in text on Discord cannot be more than the total pages.
+            if (page > totalStatsPages){
+                page = totalStatsPages;
+            }
+
+            SendStatsToServer(message,serverStats,totalStatsPages,page,"month");
+            break;
+
+        // Commands for settings
         case '!gmsettings':
             if (args.length == 1){
                 message.reply("Incorrect use of the command. Please use the add command in the form !gmsettings [Setting to change] [On/Off].");
@@ -303,6 +356,8 @@ bot.on('message', async(message) => {
             }
             break;
 
+
+        // Commands for help
         case '!gmhelp':
             message.reply("Help has not been implemented yet. Coming soon.");
             break;
@@ -545,8 +600,12 @@ function GetServerStats(guild,desiredPage,whichStat){
         stats = require(serverStatsFilePath);
 
     }else if(whichStat == "week"){
+        serverStatsFilePath = GetWeekStatsFilePath(guild);
+        stats = require(serverStatsFilePath);
 
     }else if(whichStat == "month"){
+        serverStatsFilePath = GetMonthStatsFilePath(guild);
+        stats = require(serverStatsFilePath);
 
     }else{
         console.log("Error which whichStat.");
@@ -653,7 +712,7 @@ function ConvertDataToBetterUnitOfTime(dataArr){
     return [dataArr,minHourDay];
 }
 
-function SendStatsToServer(message,serverStats,totalStatsPages,page){
+function SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat){
     const leftArrow = "⬅️";
     const rightArrow = "➡️";
 
@@ -698,11 +757,11 @@ function SendStatsToServer(message,serverStats,totalStatsPages,page){
                 // Send new message containing graph for previous page
                 newPage = page - 1;
 
-                const returnedData = GetServerStats(message.guild,newPage);
+                const returnedData = GetServerStats(message.guild,newPage,whichStat);
                 let serverStats = returnedData[0];
                 let totalStatsPages = returnedData[1];
 
-                SendStatsToServer(message,serverStats,totalStatsPages,newPage);
+                SendStatsToServer(message,serverStats,totalStatsPages,newPage,whichStat);
             }
             else{
                 // Delete the graph rich embed message.
@@ -711,11 +770,11 @@ function SendStatsToServer(message,serverStats,totalStatsPages,page){
                 // Send new message containing graph for next page
                 newPage = page + 1;
 
-                const returnedData = GetServerStats(message.guild,newPage);
+                const returnedData = GetServerStats(message.guild,newPage,whichStat);
                 let serverStats = returnedData[0];
                 let totalStatsPages = returnedData[1];
 
-                SendStatsToServer(message,serverStats,totalStatsPages,page+1);
+                SendStatsToServer(message,serverStats,totalStatsPages,page+1,whichStat);
             }
         });
     });
