@@ -100,7 +100,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
 
         // Give the member the role.
         await newMember.addRole(roleToAddToMember);
-        RecordRoleAdd(roleToAddToMember,serverStatisticsFilePath);
+        RecordRoleAdd(roleToAddToMember,newMember);
         //-- TRACK EVENT
 
         console.log(`Added ROLE: ${roleToAddToMember.name} | Member: ${newMember.displayName} | Server: ${newMember.guild.name}.`);
@@ -234,15 +234,16 @@ bot.on('message', async(message) => {
             // Use case either !gmstats for page 1 || !gmstats [Desired Page]
             var returnedData;
             var page;
-            var whichStat = "Total";
+            var whichPeriod = "Total";
+            var gameRoleKey = 'Total Minutes Played';
             if(args[1]){
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
                 page = args[1];
-                returnedData = GetServerStats(message.guild,page,whichStat);
+                returnedData = GetServerStats(message.guild,page,whichPeriod,gameRoleKey);
             }else{
                 page = 1;
-                returnedData = GetServerStats(message.guild,1,whichStat);
+                returnedData = GetServerStats(message.guild,1,whichPeriod,gameRoleKey);
             }
             
             var serverStats = returnedData[0];
@@ -253,22 +254,23 @@ bot.on('message', async(message) => {
                 page = totalStatsPages;
             }
 
-            SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat);
+            SendStatsToServer(message,serverStats,totalStatsPages,page,whichPeriod,"Game",gameRoleKey);
             break;
 
         case '!gmstatsday':
             // Send the stats for the current day
             var returnedData;
             var page;
-            var whichStat = "Day";
+            var whichPeriod = "Day";
+            var gameRoleKey = 'Total Minutes Played';
             if(args[1]){
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
                 page = args[1];
-                returnedData = GetServerStats(message.guild,page,whichStat);
+                returnedData = GetServerStats(message.guild,page,whichPeriod,gameRoleKey);
             }else{
                 page = 1;
-                returnedData = GetServerStats(message.guild,1,whichStat);
+                returnedData = GetServerStats(message.guild,1,whichPeriod,gameRoleKey);
             }
             
             var serverStats = returnedData[0];
@@ -279,22 +281,23 @@ bot.on('message', async(message) => {
                 page = totalStatsPages;
             }
 
-            SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat);
+            SendStatsToServer(message,serverStats,totalStatsPages,page,whichPeriod,"Game");
             break;
 
         case '!gmstatsweek':
             // Send the stats for the current day
             var returnedData;
             var page;
-            var whichStat = "Week";
+            var whichPeriod = "Week";
+            var gameRole = 'Total Minutes Played';
             if(args[1]){
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
                 page = args[1];
-                returnedData = GetServerStats(message.guild,page,whichStat);
+                returnedData = GetServerStats(message.guild,page,whichPeriod,gameRole);
             }else{
                 page = 1;
-                returnedData = GetServerStats(message.guild,1,whichStat);
+                returnedData = GetServerStats(message.guild,1,whichPeriod,gameRole);
             }
             
             var serverStats = returnedData[0];
@@ -305,22 +308,23 @@ bot.on('message', async(message) => {
                 page = totalStatsPages;
             }
 
-            SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat);
+            SendStatsToServer(message,serverStats,totalStatsPages,page,whichPeriod,"Game");
             break;
 
         case '!gmstatsmonth':
             // Send the stats for the current day
             var returnedData;
             var page;
-            var whichStat = "Month";
+            var whichPeriod = "Month";
+            var gameRole = 'Total Minutes Played';
             if(args[1]){
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
                 page = args[1];
-                returnedData = GetServerStats(message.guild,page,whichStat);
+                returnedData = GetServerStats(message.guild,page,whichPeriod,gameRoleKey);
             }else{
                 page = 1;
-                returnedData = GetServerStats(message.guild,1,whichStat);
+                returnedData = GetServerStats(message.guild,1,whichPeriod,gameRoleKey);
             }
             
             var serverStats = returnedData[0];
@@ -331,7 +335,34 @@ bot.on('message', async(message) => {
                 page = totalStatsPages;
             }
 
-            SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat);
+            SendStatsToServer(message,serverStats,totalStatsPages,page,whichPeriod,"Game");
+            break;
+        
+        case '!gmstatsrolestotal':
+            // Send the stats for the current day
+            var returnedData;
+            var page;
+            var whichPeriod = "Total";
+            var gameRoleKey = "Number of times roles added to users"
+            if(args[1]){
+                // user chose a page
+                console.log(`Desired Page: ${args[1]}`);
+                page = args[1];
+                returnedData = GetServerStats(message.guild,page,whichPeriod,gameRoleKey);
+            }else{
+                page = 1;
+                returnedData = GetServerStats(message.guild,1,whichPeriod,gameRoleKey);
+            }
+            
+            var serverStats = returnedData[0];
+            var totalStatsPages = returnedData[1];
+
+            // Page number displayed in text on Discord cannot be more than the total pages.
+            if (page > totalStatsPages){
+                page = totalStatsPages;
+            }
+
+            SendStatsToServer(message,serverStats,totalStatsPages,page,whichPeriod,"Role",gameRoleKey);
             break;
 
         // Commands for settings
@@ -524,15 +555,61 @@ async function DeleteServerRecords(guild){
 //
 // --------------------------------------
 
-async function RecordRoleAdd(role,serverStatisticsFilePath){
+async function RecordRoleAdd(role,newMember){
     console.log(`Record new role addition with role: ${role.name}`);
-    var statsFile = require(serverStatisticsFilePath);
-
     let roleName = role.name;
 
-    statsFile["Number of times roles added to users"][roleName] = 1;
+    // Update total role record
+
+    var serverStatisticsFilePath = GetTotalStatsFilePath(newMember.guild.id)
+    var statsFile = require(serverStatisticsFilePath);
+
+    if(roleName in statsFile["Number of times roles added to users"]){
+        statsFile["Number of times roles added to users"][roleName] += 1;
+    }else{
+        statsFile["Number of times roles added to users"][roleName] = 1;
+    }
 
     UpdateJsonFile(serverStatisticsFilePath, statsFile);
+
+    // Update day role record
+
+    serverStatisticsFilePath = GetDayStatsFilePath(newMember.guild.id);
+    statsFile = require(serverStatisticsFilePath);
+    
+    if(roleName in statsFile["Number of times roles added to users"]){
+        statsFile["Number of times roles added to users"][roleName] += 1;
+    }else{
+        statsFile["Number of times roles added to users"][roleName] = 1;
+    }
+
+    UpdateJsonFile(serverStatisticsFilePath, statsFile);
+
+    // Update week role record
+
+    serverStatisticsFilePath = GetWeekStatsFilePath(newMember.guild.id);
+    statsFile = require(serverStatisticsFilePath);
+    
+    if(roleName in statsFile["Number of times roles added to users"]){
+        statsFile["Number of times roles added to users"][roleName] += 1;
+    }else{
+        statsFile["Number of times roles added to users"][roleName] = 1;
+    }
+
+    UpdateJsonFile(serverStatisticsFilePath, statsFile);
+
+    // Update month role record
+
+    serverStatisticsFilePath = GetMonthStatsFilePath(newMember.guild.id);
+    statsFile = require(serverStatisticsFilePath);
+    
+    if(roleName in statsFile["Number of times roles added to users"]){
+        statsFile["Number of times roles added to users"][roleName] += 1;
+    }else{
+        statsFile["Number of times roles added to users"][roleName] = 1;
+    }
+
+    UpdateJsonFile(serverStatisticsFilePath, statsFile)
 }
 
 async function GameRecording(oldMember, newMember){
@@ -583,43 +660,44 @@ async function StartNewGameRecording(newMember){
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
 }
 
-function GetServerStats(guild,desiredPage,whichStat){
+function GetServerStats(guild,desiredPage,whichPeriod,gameRoleKey){
 
     var serverStatsFilePath;
     var stats;
 
-    if (whichStat == "Total"){
+    if (whichPeriod == "Total"){
         serverStatsFilePath = GetTotalStatsFilePath(guild.id);
         stats = require(serverStatsFilePath);
 
-    }else if(whichStat == "Day"){
+    }else if(whichPeriod == "Day"){
         serverStatsFilePath = GetDayStatsFilePath(guild.id);
         stats = require(serverStatsFilePath);
 
-    }else if(whichStat == "Week"){
+    }else if(whichPeriod == "Week"){
         serverStatsFilePath = GetWeekStatsFilePath(guild.id);
         stats = require(serverStatsFilePath);
 
-    }else if(whichStat == "Month"){
+    }else if(whichPeriod == "Month"){
         serverStatsFilePath = GetMonthStatsFilePath(guild.id);
         stats = require(serverStatsFilePath);
 
     }else{
-        console.log("Error which whichStat.");
+        console.log("Error which whichPeriod.");
     }
 
     
 
     var itemsPerPage = 15;
 
-    const minStats = stats['Total Minutes Played']
+    const minStats = stats[gameRoleKey]
 
     var labelsArr = [];
     var dataArr = [];
     for (var key in minStats) {
         if (minStats.hasOwnProperty(key)) {
             // Replace spaces in the game name with %20 for spaces in URLs.
-            var formattedKey = key.replace(/\s+/g, '%20')
+            var removedSpaces = key.replace(/\s+/g, '%20');
+            var formattedKey = removedSpaces.replace('&', '%26');
             labelsArr.push(`"${formattedKey}"`);
             dataArr.push(parseInt(minStats[key]));
         }
@@ -650,7 +728,10 @@ function GetServerStats(guild,desiredPage,whichStat){
         dataArr.pop();
     }
 
-    var chartData = `{type:"bar",data:{labels:[${labelsArr}],datasets:[{label:'${minHourDay}%20Played',data:[${dataArr}]}]}}` 
+    // Replace spaces with encoded %20 for the key in graph.
+    var gameRoleKeyEncoded = gameRoleKey.replace(/\s+/g, '%20');
+
+    var chartData = `{type:"bar",data:{labels:[${labelsArr}],datasets:[{label:'${gameRoleKeyEncoded}',data:[${dataArr}]}]}}` 
     var url = `https://quickchart.io/chart?c=${chartData}&bkg=white`;
 
     const statsEmbeded = new Discord.RichEmbed()
@@ -709,12 +790,12 @@ function ConvertDataToBetterUnitOfTime(dataArr){
     return [dataArr,minHourDay];
 }
 
-function SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat){
+function SendStatsToServer(message,serverStats,totalStatsPages,page,whichPeriod,gameRole,gameRoleKey){
     const leftArrow = "⬅️";
     const rightArrow = "➡️";
 
     // Send the chart to the server in a richembed.
-    message.channel.send(`**${message.guild.name}**'s ${whichStat} Stats - Page: ${page}/${totalStatsPages}`, serverStats).then(sentMessage => {
+    message.channel.send(`**${message.guild.name}**'s ${whichPeriod} ${gameRole} Stats - Page: ${page}/${totalStatsPages}`, serverStats).then(sentMessage => {
         
         // Show only certain arrows for certain pages.
         //  React with left arrow for page 1.
@@ -754,11 +835,11 @@ function SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat){
                 // Send new message containing graph for previous page
                 newPage = page - 1;
 
-                const returnedData = GetServerStats(message.guild,newPage,whichStat);
+                const returnedData = GetServerStats(message.guild,newPage,whichPeriod,gameRoleKey);
                 let serverStats = returnedData[0];
                 let totalStatsPages = returnedData[1];
 
-                SendStatsToServer(message,serverStats,totalStatsPages,newPage,whichStat);
+                SendStatsToServer(message,serverStats,totalStatsPages,newPage,whichPeriod,gameRole,gameRoleKey);
             }
             else{
                 // Delete the graph rich embed message.
@@ -767,11 +848,11 @@ function SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat){
                 // Send new message containing graph for next page
                 newPage = page + 1;
 
-                const returnedData = GetServerStats(message.guild,newPage,whichStat);
+                const returnedData = GetServerStats(message.guild,newPage,whichPeriod,gameRoleKey);
                 let serverStats = returnedData[0];
                 let totalStatsPages = returnedData[1];
 
-                SendStatsToServer(message,serverStats,totalStatsPages,page+1,whichStat);
+                SendStatsToServer(message,serverStats,totalStatsPages,page+1,whichPeriod,gameRole,gameRoleKey);
             }
         });
     });
@@ -834,6 +915,7 @@ function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
     UpdateJsonFile(statsFilePath, statsFile);
 }
 
+// Function for removing each server's day stats at the beginning of a new day.
 function RemoveDayStatContent(){
     console.log("Running removing day data function...");
     global.setInterval(function(){
@@ -859,6 +941,7 @@ function RemoveDayStatContent(){
     }, 60000)
 }
 
+// Function for removing each server's week stats at the beginning of a new week.
 function RemoveWeekStatContent(){
     console.log("Running removing week data function...");
     global.setInterval(function(){
@@ -885,6 +968,7 @@ function RemoveWeekStatContent(){
     }, 60000)
 }
 
+// Function for removing each server's month stats at the beginning of a new month.
 function RemoveMonthStatContent(){
     console.log("Running removing month data function...")
     global.setInterval(function(){
