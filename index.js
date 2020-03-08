@@ -560,22 +560,17 @@ async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, ne
     delete tempGameRecord[newMember.id];
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
 
-    let statsFilePath = GetTotalStatsFilePath(newMember.guild);
-    var statsFile = require(statsFilePath);
-
-    // Ternary, if game exists in server's stats then add total time played to what is stored, if it doesnt then assign time played.
-    if(gameName in statsFile["Total Minutes Played"]){
-        statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor;
-    }else{
-        statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
-    }
-    UpdateJsonFile(statsFilePath, statsFile);
+    // Update full stats
+    UpdateFullRecord(newMember,gameName,totalTimeOpenFor);
 
     // Update day stats
+    UpdateDayRecord(newMember,gameName,totalTimeOpenFor);
 
     // Update week stats
+    UpdateWeekRecord(newMember,gameName,totalTimeOpenFor);
 
     // Update month stats
+    UpdateMonthRecord(newMember,gameName,totalTimeOpenFor);
 }
 
 async function StartNewGameRecording(newMember){
@@ -780,6 +775,61 @@ function SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat){
     });
 
     return;
+}
+
+// Function for updating full record
+function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
+    var statsFilePath = GetTotalStatsFilePath(newMember.guild);
+    var statsFile = require(statsFilePath);
+
+    // Ternary, if game exists in server's stats then add total time played to what is stored, if it doesnt then assign time played.
+    if(gameName in statsFile["Total Minutes Played"]){
+        statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor;
+    }else{
+        statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
+    }
+    UpdateJsonFile(statsFilePath, statsFile);
+}
+// Function for updating the current day's records
+function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
+    var statsFilePath = GetDayStatsFilePath(newMember.guild);
+    var statsFile = require(statsFilePath);
+
+    // Ternary, if game exists in server's day stats then add total time played to what is stored, if it doesnt then assign time played.
+    if(gameName in statsFile["Total Minutes Played"]){
+        statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor;
+    }else{
+        statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
+    }
+    UpdateJsonFile(statsFilePath, statsFile);
+}
+
+// Function for updating the current week's records
+function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
+    var statsFilePath = GetWeekStatsFilePath(newMember.guild);
+    var statsFile = require(statsFilePath);
+
+    // Ternary, if game exists in server's week stats then add total time played to what is stored, if it doesnt then assign time played.
+    if(gameName in statsFile["Total Minutes Played"]){
+        statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor;
+    }else{
+        statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
+    }
+    UpdateJsonFile(statsFilePath, statsFile);
+}
+
+// Function for updating the current months's records
+function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
+    var statsFilePath = GetMonthStatsFilePath(newMember.guild);
+    var statsFile = require(statsFilePath);
+
+    // Ternary, if game exists in server's month stats then add total time played to what is stored, if it doesnt then assign time played.
+    if(gameName in statsFile["Total Minutes Played"]){
+        statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor;
+    }else{
+        statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
+    }
+    UpdateJsonFile(statsFilePath, statsFile);
 }
 
 // Smaller functions -------
