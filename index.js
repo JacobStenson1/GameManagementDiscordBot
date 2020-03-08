@@ -13,9 +13,7 @@ const bot = new Discord.Client();
 bot.on('ready', async() => {
     console.log("Bot online.");
     UpdatePresence();
-    RemoveDayStatContent();
-    RemoveWeekStatContent();
-    RemoveMonthStatContent();
+    RemoveDataTimeoutFunctions();
 });
 
 // Called when bot is added to a new server.
@@ -837,11 +835,9 @@ function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
 }
 
 function RemoveDayStatContent(){
-    console.log("Running removing day data function.");
+    console.log("Running removing day data function...");
     global.setInterval(function(){
         var date = new Date();
-        console.log("Checking to see if it is midnight...")
-
         if(date.getHours() === 00 && date.getMinutes() === 00){
             // Remove day content
             console.log("Removing all server's day content");
@@ -864,11 +860,9 @@ function RemoveDayStatContent(){
 }
 
 function RemoveWeekStatContent(){
-    console.log("Running removing week data function.");
+    console.log("Running removing week data function...");
     global.setInterval(function(){
         var date = new Date();
-        console.log("Checking to see if it is a monday...")
-
         // Is the current date var 00:00 on a monday?
         if(date.getHours() === 00 && date.getMinutes() === 00 && date.getDay() == 1){
             // Remove week content
@@ -892,11 +886,9 @@ function RemoveWeekStatContent(){
 }
 
 function RemoveMonthStatContent(){
-    console.log("Running removing month data function")
+    console.log("Running removing month data function...")
     global.setInterval(function(){
         var date = new Date();
-        console.log("Checking to see if it is the first...")
-
         // Is the current date var 00:00 on a monday?
         if(date.getHours() === 00 && date.getMinutes() === 00 && date.getDate() == 1){
             // Remove week content
@@ -920,6 +912,13 @@ function RemoveMonthStatContent(){
 }
 
 // Smaller functions -------
+
+// Functions for removing stat content at specific times.
+function RemoveDataTimeoutFunctions(){
+    RemoveDayStatContent();
+    RemoveWeekStatContent();
+    RemoveMonthStatContent();
+}
 
 // Function for getting a server's total statistics file path.
 function GetTotalStatsFilePath(guild){
