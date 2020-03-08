@@ -233,14 +233,15 @@ bot.on('message', async(message) => {
             // Use case either !gmstats for page 1 || !gmstats [Desired Page]
             var returnedData;
             var page;
+            var whichStat = "Total";
             if(args[1]){
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
                 page = args[1];
-                returnedData = GetServerStats(message.guild,page,"total");
+                returnedData = GetServerStats(message.guild,page,whichStat);
             }else{
                 page = 1;
-                returnedData = GetServerStats(message.guild,1,"total");
+                returnedData = GetServerStats(message.guild,1,whichStat);
             }
             
             var serverStats = returnedData[0];
@@ -251,22 +252,22 @@ bot.on('message', async(message) => {
                 page = totalStatsPages;
             }
 
-            SendStatsToServer(message,serverStats,totalStatsPages,page,"total");
+            SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat);
             break;
 
         case '!gmstatsday':
             // Send the stats for the current day
             var returnedData;
             var page;
-
+            var whichStat = "Day";
             if(args[1]){
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
                 page = args[1];
-                returnedData = GetServerStats(message.guild,page,"day");
+                returnedData = GetServerStats(message.guild,page,whichStat);
             }else{
                 page = 1;
-                returnedData = GetServerStats(message.guild,1,"day");
+                returnedData = GetServerStats(message.guild,1,whichStat);
             }
             
             var serverStats = returnedData[0];
@@ -277,22 +278,22 @@ bot.on('message', async(message) => {
                 page = totalStatsPages;
             }
 
-            SendStatsToServer(message,serverStats,totalStatsPages,page,"day");
+            SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat);
             break;
 
         case '!gmstatsweek':
             // Send the stats for the current day
             var returnedData;
             var page;
-
+            var whichStat = "Week";
             if(args[1]){
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
                 page = args[1];
-                returnedData = GetServerStats(message.guild,page,"week");
+                returnedData = GetServerStats(message.guild,page,whichStat);
             }else{
                 page = 1;
-                returnedData = GetServerStats(message.guild,1,"week");
+                returnedData = GetServerStats(message.guild,1,whichStat);
             }
             
             var serverStats = returnedData[0];
@@ -303,22 +304,22 @@ bot.on('message', async(message) => {
                 page = totalStatsPages;
             }
 
-            SendStatsToServer(message,serverStats,totalStatsPages,page,"week");
+            SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat);
             break;
 
         case '!gmstatsmonth':
             // Send the stats for the current day
             var returnedData;
             var page;
-
+            var whichStat = "Month";
             if(args[1]){
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
                 page = args[1];
-                returnedData = GetServerStats(message.guild,page,"month");
+                returnedData = GetServerStats(message.guild,page,whichStat);
             }else{
                 page = 1;
-                returnedData = GetServerStats(message.guild,1,"month");
+                returnedData = GetServerStats(message.guild,1,whichStat);
             }
             
             var serverStats = returnedData[0];
@@ -329,7 +330,7 @@ bot.on('message', async(message) => {
                 page = totalStatsPages;
             }
 
-            SendStatsToServer(message,serverStats,totalStatsPages,page,"month");
+            SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat);
             break;
 
         // Commands for settings
@@ -586,19 +587,19 @@ function GetServerStats(guild,desiredPage,whichStat){
     var serverStatsFilePath;
     var stats;
 
-    if (whichStat == "total"){
+    if (whichStat == "Total"){
         serverStatsFilePath = GetTotalStatsFilePath(guild);
         stats = require(serverStatsFilePath);
 
-    }else if(whichStat == "day"){
+    }else if(whichStat == "Day"){
         serverStatsFilePath = GetDayStatsFilePath(guild);
         stats = require(serverStatsFilePath);
 
-    }else if(whichStat == "week"){
+    }else if(whichStat == "Week"){
         serverStatsFilePath = GetWeekStatsFilePath(guild);
         stats = require(serverStatsFilePath);
 
-    }else if(whichStat == "month"){
+    }else if(whichStat == "Month"){
         serverStatsFilePath = GetMonthStatsFilePath(guild);
         stats = require(serverStatsFilePath);
 
@@ -712,7 +713,7 @@ function SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat){
     const rightArrow = "➡️";
 
     // Send the chart to the server in a richembed.
-    message.channel.send(`**${message.guild.name}**'s Presence Stats - Page: ${page}/${totalStatsPages}`, serverStats).then(sentMessage => {
+    message.channel.send(`**${message.guild.name}**'s ${whichStat} Stats - Page: ${page}/${totalStatsPages}`, serverStats).then(sentMessage => {
         
         // Show only certain arrows for certain pages.
         //  React with left arrow for page 1.
