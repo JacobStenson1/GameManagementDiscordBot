@@ -13,6 +13,9 @@ const bot = new Discord.Client();
 bot.on('ready', async() => {
     console.log("Bot online.");
     UpdatePresence();
+    RemoveDayStatContent();
+    RemoveWeekStatContent();
+    RemoveMonthStatContent();
 });
 
 // Called when bot is added to a new server.
@@ -63,8 +66,8 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         if(newMember.presence.game == null || (newMember.presence.game == "Spotify")){return;}
 
         let gameNameUserIsPlaying = newMember.presence.game.name;
-        var serverStatisticsFilePath = GetTotalStatsFilePath(newMember.guild);
-        let temp = GetWhitelistFilePath(newMember.guild);
+        var serverStatisticsFilePath = GetTotalStatsFilePath(newMember.guild.id);
+        let temp = GetWhitelistFilePath(newMember.guild.id);
         let serverWhitelist = require(temp);
 
         // Is the game the user is playing in the whitelist? If it isn't do not continue.
@@ -74,7 +77,7 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         let roleSearchByID = newMember.guild.roles.find(x => x.id == roleFromWhitelist);
         var roleToAddToMember;
 
-        let serverSettings = require(GetSettingsFilePath(newMember.guild));
+        let serverSettings = require(GetSettingsFilePath(newMember.guild.id));
 
         // If the search by ID netted results.
         if (roleSearchByID){
@@ -211,7 +214,7 @@ bot.on('message', async(message) => {
             }
 
             var gameToDelete = args.slice(1,args.length).join(" ").toString();
-            var serverWhitelistPath = GetWhitelistFilePath(message.guild);
+            var serverWhitelistPath = GetWhitelistFilePath(message.guild.id);
             var serverWhitelist = require(serverWhitelistPath);
 
             // Delete from the whitelist.
@@ -373,7 +376,7 @@ bot.on('message', async(message) => {
 
 async function AddRoleToWhitelist(message,gameName,roleName,roleToAdd){
     var guild = message.guild;
-    var serverWhitelistFilePath = GetWhitelistFilePath(guild);
+    var serverWhitelistFilePath = GetWhitelistFilePath(guild.id);
     var whiteListJson = await require(serverWhitelistFilePath);
 
     whiteListJson[gameName] = roleToAdd;
@@ -393,7 +396,7 @@ async function UpdateSetting(settingToChange, newSettingValue, message){
     }
 
     //var serverSettingsPath = `./ServerSettings/${message.member.guild.id}.json`;
-    var serverSettingsPath = GetSettingsFilePath(message.guild);
+    var serverSettingsPath = GetSettingsFilePath(message.guild.id);
     var serverSettings = await require(serverSettingsPath);
     serverSettings[settingToChange] = newValue;
 
@@ -459,36 +462,36 @@ async function InitialiseNewServer(guild){
 
     // Setting up new server's whitelist.
     var emptyObj = {};
-    var ServerWhitelistFilePath = GetWhitelistFilePath(guild);
+    var ServerWhitelistFilePath = GetWhitelistFilePath(guild.id);
     UpdateJsonFile(ServerWhitelistFilePath, emptyObj);
 
     // Setup new server's settings.
     var newServerSettingsObj = {"OwnerID": guild.owner.id, "createcategory": false};
-    var serverSettingsPath = GetSettingsFilePath(guild);
+    var serverSettingsPath = GetSettingsFilePath(guild.id);
     UpdateJsonFile(serverSettingsPath, newServerSettingsObj);
 
     // Setup new server's statistics.
     var obj = {"Total Minutes Played":{},
                 "Number of times roles added to users":{}
                 }
-    var serverTotalStatisticsFilePath = GetTotalStatsFilePath(guild);
+    var serverTotalStatisticsFilePath = GetTotalStatsFilePath(guild.id);
     UpdateJsonFile(serverTotalStatisticsFilePath, obj);
 
     // Setup Day Stats
-    var serverDayStatsFilePath = GetDayStatsFilePath(guild);
+    var serverDayStatsFilePath = GetDayStatsFilePath(guild.id);
     UpdateJsonFile(serverDayStatsFilePath, obj);
 
     // Setup Week Stats
-    var serverWeekStatsFilePath = GetWeekStatsFilePath(guild);
+    var serverWeekStatsFilePath = GetWeekStatsFilePath(guild.id);
     UpdateJsonFile(serverWeekStatsFilePath, obj);
 
     // Setup Month Stats
-    var serverMonthStatsFilePath = GetMonthStatsFilePath(guild);
+    var serverMonthStatsFilePath = GetMonthStatsFilePath(guild.id);
     UpdateJsonFile(serverMonthStatsFilePath, obj);
 
     // Setup new server's temp record file system.
     var obj = {};
-    var serverTempRecordFilePath = GetTempRecordFilePath(guild);
+    var serverTempRecordFilePath = GetTempRecordFilePath(guild.id);
     UpdateJsonFile(serverTempRecordFilePath, obj);
 
     // Add new server to list of servers.
@@ -535,7 +538,7 @@ async function RecordRoleAdd(role,serverStatisticsFilePath){
 }
 
 async function GameRecording(oldMember, newMember){
-    let serverTempRecordFilePath = GetTempRecordFilePath(newMember.guild);
+    let serverTempRecordFilePath = GetTempRecordFilePath(newMember.guild.id);
     tempGameRecord = await require(serverTempRecordFilePath);
 
     var isUsersGameBeingRecordedAlready;
@@ -575,7 +578,7 @@ async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, ne
 }
 
 async function StartNewGameRecording(newMember){
-    let serverTempRecordFilePath = GetTempRecordFilePath(newMember.guild);
+    let serverTempRecordFilePath = GetTempRecordFilePath(newMember.guild.id);
     tempGameRecord = await require(serverTempRecordFilePath);
 
     tempGameRecord[newMember.id] = {"dateGameOpen": Date.now(), "gameName": newMember.presence.game.name};
@@ -588,19 +591,19 @@ function GetServerStats(guild,desiredPage,whichStat){
     var stats;
 
     if (whichStat == "Total"){
-        serverStatsFilePath = GetTotalStatsFilePath(guild);
+        serverStatsFilePath = GetTotalStatsFilePath(guild.id);
         stats = require(serverStatsFilePath);
 
     }else if(whichStat == "Day"){
-        serverStatsFilePath = GetDayStatsFilePath(guild);
+        serverStatsFilePath = GetDayStatsFilePath(guild.id);
         stats = require(serverStatsFilePath);
 
     }else if(whichStat == "Week"){
-        serverStatsFilePath = GetWeekStatsFilePath(guild);
+        serverStatsFilePath = GetWeekStatsFilePath(guild.id);
         stats = require(serverStatsFilePath);
 
     }else if(whichStat == "Month"){
-        serverStatsFilePath = GetMonthStatsFilePath(guild);
+        serverStatsFilePath = GetMonthStatsFilePath(guild.id);
         stats = require(serverStatsFilePath);
 
     }else{
@@ -780,7 +783,7 @@ function SendStatsToServer(message,serverStats,totalStatsPages,page,whichStat){
 
 // Function for updating full record
 function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
-    var statsFilePath = GetTotalStatsFilePath(newMember.guild);
+    var statsFilePath = GetTotalStatsFilePath(newMember.guild.id);
     var statsFile = require(statsFilePath);
 
     // Ternary, if game exists in server's stats then add total time played to what is stored, if it doesnt then assign time played.
@@ -793,7 +796,7 @@ function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
 }
 // Function for updating the current day's records
 function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
-    var statsFilePath = GetDayStatsFilePath(newMember.guild);
+    var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
     var statsFile = require(statsFilePath);
 
     // Ternary, if game exists in server's day stats then add total time played to what is stored, if it doesnt then assign time played.
@@ -807,7 +810,7 @@ function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
 
 // Function for updating the current week's records
 function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
-    var statsFilePath = GetWeekStatsFilePath(newMember.guild);
+    var statsFilePath = GetWeekStatsFilePath(newMember.guild.id);
     var statsFile = require(statsFilePath);
 
     // Ternary, if game exists in server's week stats then add total time played to what is stored, if it doesnt then assign time played.
@@ -821,7 +824,7 @@ function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
 
 // Function for updating the current months's records
 function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
-    var statsFilePath = GetMonthStatsFilePath(newMember.guild);
+    var statsFilePath = GetMonthStatsFilePath(newMember.guild.id);
     var statsFile = require(statsFilePath);
 
     // Ternary, if game exists in server's month stats then add total time played to what is stored, if it doesnt then assign time played.
@@ -833,41 +836,124 @@ function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
     UpdateJsonFile(statsFilePath, statsFile);
 }
 
+function RemoveDayStatContent(){
+    console.log("Running removing day data function.");
+    global.setInterval(function(){
+        var date = new Date();
+        console.log("Checking to see if it is midnight...")
+
+        if(date.getHours() === 00 && date.getMinutes() === 00){
+            // Remove day content
+            console.log("Removing all server's day content");
+            var obj = {"Total Minutes Played":{},
+                "Number of times roles added to users":{}
+                };
+
+            fs.readdir('./Servers', function (err, files) {
+                if (err) { return console.log('Unable to scan directory: ' + err); } 
+                files.forEach(function (file) {
+                    console.log(`Removing server: ${file} day content`);
+                    var serverId = file;
+
+                    var statsFilePath = GetDayStatsFilePath(serverId);
+                    UpdateJsonFile(statsFilePath,obj);
+                });
+            });
+        }
+    }, 60000)
+}
+
+function RemoveWeekStatContent(){
+    console.log("Running removing week data function.");
+    global.setInterval(function(){
+        var date = new Date();
+        console.log("Checking to see if it is a monday...")
+
+        // Is the current date var 00:00 on a monday?
+        if(date.getHours() === 00 && date.getMinutes() === 00 && date.getDay() == 1){
+            // Remove week content
+            console.log("Removing all server's week content");
+            var obj = {"Total Minutes Played":{},
+                "Number of times roles added to users":{}
+                };
+
+            fs.readdir('./Servers', function (err, files) {
+                if (err) { return console.log('Unable to scan directory: ' + err); } 
+                files.forEach(function (file) {
+                    console.log(`Removing server: ${file} week content`);
+                    var serverId = file;
+
+                    var statsFilePath = GetWeekStatsFilePath(serverId);
+                    UpdateJsonFile(statsFilePath,obj);
+                });
+            });
+        }
+    }, 60000)
+}
+
+function RemoveMonthStatContent(){
+    console.log("Running removing month data function")
+    global.setInterval(function(){
+        var date = new Date();
+        console.log("Checking to see if it is the first...")
+
+        // Is the current date var 00:00 on a monday?
+        if(date.getHours() === 00 && date.getMinutes() === 00 && date.getDate() == 1){
+            // Remove week content
+            console.log("Removing all server's month content");
+            var obj = {"Total Minutes Played":{},
+                "Number of times roles added to users":{}
+                };
+
+            fs.readdir('./Servers', function (err, files) {
+                if (err) { return console.log('Unable to scan directory: ' + err); } 
+                files.forEach(function (file) {
+                    console.log(`Removing server: ${file} month content`);
+                    var serverId = file;
+
+                    var statsFilePath = GetWeekStatsFilePath(serverId);
+                    UpdateJsonFile(statsFilePath,obj);
+                });
+            });
+        }
+    }, 60000)
+}
+
 // Smaller functions -------
 
 // Function for getting a server's total statistics file path.
 function GetTotalStatsFilePath(guild){
-    return `./Servers/${guild.id}/statistics/TotalStats.json`;
+    return `./Servers/${guild}/statistics/TotalStats.json`;
 }
 
 // Function for getting a server's day statistics file path.
 function GetDayStatsFilePath(guild){
-    return `./Servers/${guild.id}/statistics/DayStats.json`;
+    return `./Servers/${guild}/statistics/DayStats.json`;
 }
 
 // Function for getting a server's weeks statistics file path.
 function GetWeekStatsFilePath(guild){
-    return `./Servers/${guild.id}/statistics/WeekStats.json`;
+    return `./Servers/${guild}/statistics/WeekStats.json`;
 }
 
 // Function for getting a server's month statistics file path.
 function GetMonthStatsFilePath(guild){
-    return `./Servers/${guild.id}/statistics/MonthStats.json`;
+    return `./Servers/${guild}/statistics/MonthStats.json`;
 }
 
 // Function for getting a server's settings file path.
 function GetSettingsFilePath(guild){
-    return `./Servers/${guild.id}/settings.json`;
+    return `./Servers/${guild}/settings.json`;
 }
 
 // Function for getting a server's whitelist file path.
 function GetWhitelistFilePath(guild){
-    return `./Servers/${guild.id}/whitelist.json`;
+    return `./Servers/${guild}/whitelist.json`;
 }
 
 // Function for getting a server's temporary record file path.
 function GetTempRecordFilePath(guild){
-    return `./Servers/${guild.id}/tempRecord.json`;
+    return `./Servers/${guild}/tempRecord.json`;
 }
 
 // Update the presence to display total servers the bot is in.
