@@ -729,7 +729,14 @@ function GetServerStats(guild,desiredPage,whichPeriod,gameRoleKey){
     }
 
     // Replace spaces with encoded %20 for the key in graph.
-    var gameRoleKeyEncoded = gameRoleKey.replace(/\s+/g, '%20');
+    if (gameRoleKey == "Total Minutes Played"){
+        var temp = minHourDay + " Played";
+        gameRoleKeyEncoded = temp.replace(/\s+/g, '%20');
+        console.log(gameRoleKeyEncoded)
+    }else if (gameRoleKey == "Number of times roles added to users"){
+        gameRoleKeyEncoded = gameRoleKey.replace(/\s+/g, '%20');
+        console.log(gameRoleKeyEncoded)
+    }
 
     var chartData = `{type:"bar",data:{labels:[${labelsArr}],datasets:[{label:'${gameRoleKeyEncoded}',data:[${dataArr}]}]}}` 
     var url = `https://quickchart.io/chart?c=${chartData}&bkg=white`;
