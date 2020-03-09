@@ -285,7 +285,7 @@ bot.on('message', async(message) => {
             break;
 
         case '!gmstatsweek':
-            // Send the stats for the current day
+            // Send the stats for the current week
             var returnedData;
             var page;
             var whichPeriod = "Week";
@@ -312,11 +312,11 @@ bot.on('message', async(message) => {
             break;
 
         case '!gmstatsmonth':
-            // Send the stats for the current day
+            // Send the stats for the current month
             var returnedData;
             var page;
             var whichPeriod = "Month";
-            var gameRole = 'Total Minutes Played';
+            var gameRoleKey = 'Total Minutes Played';
             if(args[1]){
                 // user chose a page
                 console.log(`Desired Page: ${args[1]}`);
@@ -1076,8 +1076,8 @@ function ReverseBubbleSort(inputArr,labels){
     return inputArr,labels;
 }
 
-/* process.on('unhandledRejection', function (err) {
+process.on('unhandledRejection', function (err) {
 
-}); */
+});
 
 bot.login(token);
