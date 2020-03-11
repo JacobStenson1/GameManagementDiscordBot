@@ -927,7 +927,7 @@ function RemoveDayStatContent(){
     console.log("Running removing day data function...");
     global.setInterval(function(){
         var date = new Date();
-        if(date.getHours() === 00 && date.getMinutes() === 00){
+        if(date.getHours() === 00 && date.getMinutes() === 01){
             // Remove day content
             console.log("Removing all server's day content");
             var obj = {"Total Minutes Played":{},
@@ -954,7 +954,7 @@ function RemoveWeekStatContent(){
     global.setInterval(function(){
         var date = new Date();
         // Is the current date var 00:00 on a monday?
-        if(date.getHours() === 00 && date.getMinutes() === 00 && date.getDay() == 1){
+        if(date.getHours() === 00 && date.getMinutes() === 01 && date.getDay() == 1){
             // Remove week content
             console.log("Removing all server's week content");
             var obj = {"Total Minutes Played":{},
@@ -981,7 +981,7 @@ function RemoveMonthStatContent(){
     global.setInterval(function(){
         var date = new Date();
         // Is the current date var 00:00 on a monday?
-        if(date.getHours() === 00 && date.getMinutes() === 00 && date.getDate() == 1){
+        if(date.getHours() === 00 && date.getMinutes() === 01 && date.getDate() == 1){
             // Remove week content
             console.log("Removing all server's month content");
             var obj = {"Total Minutes Played":{},
