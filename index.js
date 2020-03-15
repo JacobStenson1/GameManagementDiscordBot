@@ -959,6 +959,9 @@ function RemoveDayStatContent(){
 
                     var statsFilePath = GetDayStatsFilePath(serverId);
                     UpdateJsonFile(statsFilePath,obj);
+
+                    var memberStatsFilePath = GetDayMemberStatsFilePath(serverId);
+                    UpdateJsonFile(memberStatsFilePath, {});
                 });
             });
         }
@@ -986,6 +989,9 @@ function RemoveWeekStatContent(){
 
                     var statsFilePath = GetWeekStatsFilePath(serverId);
                     UpdateJsonFile(statsFilePath,obj);
+
+                    var memberStatsFilePath = GetWeekMemberStatsFilePath(serverId);
+                    UpdateJsonFile(memberStatsFilePath, {});
                 });
             });
         }
@@ -1013,6 +1019,9 @@ function RemoveMonthStatContent(){
 
                     var statsFilePath = GetWeekStatsFilePath(serverId);
                     UpdateJsonFile(statsFilePath,obj);
+
+                    var memberStatsFilePath = GetMonthMemberStatsFilePath(serverId);
+                    UpdateJsonFile(memberStatsFilePath, {});
                 });
             });
         }
