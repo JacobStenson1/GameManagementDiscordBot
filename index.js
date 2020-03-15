@@ -24,7 +24,9 @@ bot.on('guildCreate', async(guild) => {
     var serverDir = `./Servers/${guild.id}`;
     if (!fs.existsSync(serverDir)){
         fs.mkdirSync(serverDir);
-        fs.mkdirSync(`${serverDir}/statistics`);
+        fs.mkdirSync(`${serverDir}/Statistics`);
+        fs.mkdirSync(`${serverDir}/Statistics/GameStats`);
+        fs.mkdirSync(`${serverDir}/Statistics/MemberStats`);
         
         await InitialiseNewServer(guild);
 
@@ -487,6 +489,7 @@ async function CreateRoleTextVoiceChannel(newMember, roleToAddToMember){
     console.log("Created category and channel.")
 }
 
+// Function ran when the bot is added to a new server - adds the necessary files.
 async function InitialiseNewServer(guild){
 
     // Setting up new server's whitelist.
@@ -500,23 +503,37 @@ async function InitialiseNewServer(guild){
     UpdateJsonFile(serverSettingsPath, newServerSettingsObj);
 
     // Setup new server's statistics.
-    var obj = {"Total Minutes Played":{},
+    var gameStatsObj = {"Total Minutes Played":{},
                 "Number of times roles added to users":{}
                 }
     var serverTotalStatisticsFilePath = GetTotalStatsFilePath(guild.id);
-    UpdateJsonFile(serverTotalStatisticsFilePath, obj);
+    UpdateJsonFile(serverTotalStatisticsFilePath, gameStatsObj);
 
     // Setup Day Stats
     var serverDayStatsFilePath = GetDayStatsFilePath(guild.id);
-    UpdateJsonFile(serverDayStatsFilePath, obj);
+    UpdateJsonFile(serverDayStatsFilePath, gameStatsObj);
 
     // Setup Week Stats
     var serverWeekStatsFilePath = GetWeekStatsFilePath(guild.id);
-    UpdateJsonFile(serverWeekStatsFilePath, obj);
+    UpdateJsonFile(serverWeekStatsFilePath, gameStatsObj);
 
     // Setup Month Stats
     var serverMonthStatsFilePath = GetMonthStatsFilePath(guild.id);
-    UpdateJsonFile(serverMonthStatsFilePath, obj);
+    UpdateJsonFile(serverMonthStatsFilePath, gameStatsObj);
+
+    memberStatsObj = {}
+
+    // Setup server's member stats recording for the current day.
+    var serverDayMemberStatsFilePath = GetDayMemberStatsFilePath(guild.id);
+    UpdateJsonFile(serverDayMemberStatsFilePath, memberStatsObj);
+
+    // Setup server's member stats recording for the current week.
+    var serverWeekMemberStatsFilePath = GetWeekMemberStatsFilePath(guild.id);
+    UpdateJsonFile(serverWeekMemberStatsFilePath, memberStatsObj);
+    
+    // Setup server's member stats recording for the current month.
+    var serverMonthMemberStatsFilePath = GetMonthMemberStatsFilePath(guild.id);
+    UpdateJsonFile(serverMonthMemberStatsFilePath, memberStatsObj);
 
     // Setup new server's temp record file system.
     var obj = {};
@@ -927,7 +944,7 @@ function RemoveDayStatContent(){
     console.log("Running removing day data function...");
     global.setInterval(function(){
         var date = new Date();
-        if(date.getHours() === 00 && date.getMinutes() === 01){
+        if(date.getHours() == 00 && date.getMinutes() == 01){
             // Remove day content
             console.log("Removing all server's day content");
             var obj = {"Total Minutes Played":{},
@@ -945,7 +962,7 @@ function RemoveDayStatContent(){
                 });
             });
         }
-    }, 60000)
+    }, 30000)
 }
 
 // Function for removing each server's week stats at the beginning of a new week.
@@ -954,7 +971,7 @@ function RemoveWeekStatContent(){
     global.setInterval(function(){
         var date = new Date();
         // Is the current date var 00:00 on a monday?
-        if(date.getHours() === 00 && date.getMinutes() === 01 && date.getDay() == 1){
+        if(date.getHours() == 00 && date.getMinutes() == 01 && date.getDay() == 1){
             // Remove week content
             console.log("Removing all server's week content");
             var obj = {"Total Minutes Played":{},
@@ -972,7 +989,7 @@ function RemoveWeekStatContent(){
                 });
             });
         }
-    }, 60000)
+    }, 30000)
 }
 
 // Function for removing each server's month stats at the beginning of a new month.
@@ -981,7 +998,7 @@ function RemoveMonthStatContent(){
     global.setInterval(function(){
         var date = new Date();
         // Is the current date var 00:00 on a monday?
-        if(date.getHours() === 00 && date.getMinutes() === 01 && date.getDate() == 1){
+        if(date.getHours() == 00 && date.getMinutes() == 01 && date.getDate() == 1){
             // Remove week content
             console.log("Removing all server's month content");
             var obj = {"Total Minutes Played":{},
@@ -999,7 +1016,7 @@ function RemoveMonthStatContent(){
                 });
             });
         }
-    }, 60000)
+    }, 30000)
 }
 
 // Smaller functions -------
@@ -1013,22 +1030,37 @@ function RemoveDataTimeoutFunctions(){
 
 // Function for getting a server's total statistics file path.
 function GetTotalStatsFilePath(guild){
-    return `./Servers/${guild}/statistics/TotalStats.json`;
+    return `./Servers/${guild}/Statistics/GameStats/TotalStats.json`;
 }
 
 // Function for getting a server's day statistics file path.
 function GetDayStatsFilePath(guild){
-    return `./Servers/${guild}/statistics/DayStats.json`;
+    return `./Servers/${guild}/Statistics/GameStats/DayStats.json`;
 }
 
 // Function for getting a server's weeks statistics file path.
 function GetWeekStatsFilePath(guild){
-    return `./Servers/${guild}/statistics/WeekStats.json`;
+    return `./Servers/${guild}/Statistics/GameStats/WeekStats.json`;
 }
 
 // Function for getting a server's month statistics file path.
 function GetMonthStatsFilePath(guild){
-    return `./Servers/${guild}/statistics/MonthStats.json`;
+    return `./Servers/${guild}/Statistics/GameStats/MonthStats.json`;
+}
+
+// Function for getting a server's member stats for the current day.
+function GetDayMemberStatsFilePath(guild){
+    return `./Servers/${guild}/Statistics/MemberStats/DayMemberStats.json`;
+}
+
+// Function for getting a server's member stats for the current week.
+function GetWeekMemberStatsFilePath(guild){
+    return `./Servers/${guild}/Statistics/MemberStats/WeekMemberStats.json`;
+}
+
+// Function for getting a server's member stats for the current month.
+function GetMonthMemberStatsFilePath(guild){
+    return `./Servers/${guild}/Statistics/MemberStats/MonthMemberStats.json`;
 }
 
 // Function for getting a server's settings file path.
