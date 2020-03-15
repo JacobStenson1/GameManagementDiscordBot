@@ -896,6 +896,42 @@ function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
         statsFile["Total Minutes Played"][gameName] = totalTimeOpenFor;
     }
     UpdateJsonFile(statsFilePath, statsFile);
+
+    // --
+
+    // Saving of member's stats
+    var memberStatsFilePath = GetTotalMemberStatsFilePath(newMember.guild.id);
+    
+    //console.log(memberStatsFilePath)
+    
+    var memberStatsFile = require(memberStatsFilePath);
+    var memberName = newMember.displayName;
+    
+    console.log(memberStatsFile)
+    console.log(gameName)
+    //console.log((gameName in memberStatsFile[memberName]))
+
+    try{
+        // Ternary, if user's content exists in members's stats then add total time played to what is stored, if it doesnt then assign time played.
+        if(gameName in memberStatsFile[memberName]){
+            //var timePlayedSoFar = memberStatsFile[memberName][gameName];
+            memberStatsFile[memberName][gameName] += totalTimeOpenFor;
+        }else{
+            console.log("new user")
+            //memberStatsFile[memberName] = {};
+            memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
+        }
+    }catch{
+        console.log("New user's records to record.")
+        memberStatsFile[memberName] = {};
+        memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
+    }
+    
+    
+    console.log("Updating member stats");
+    console.log(memberStatsFile);
+    UpdateJsonFile(memberStatsFilePath, memberStatsFile);
+
 }
 // Function for updating the current day's records
 function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
@@ -1055,6 +1091,10 @@ function GetWeekStatsFilePath(guild){
 // Function for getting a server's month statistics file path.
 function GetMonthStatsFilePath(guild){
     return `./Servers/${guild}/Statistics/GameStats/MonthStats.json`;
+}
+
+function GetTotalMemberStatsFilePath(guild){
+    return `./Servers/${guild}/Statistics/MemberStats/TotalMemberStats.json`;
 }
 
 // Function for getting a server's member stats for the current day.
