@@ -889,6 +889,8 @@ function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
     var statsFilePath = GetTotalStatsFilePath(newMember.guild.id);
     var statsFile = require(statsFilePath);
 
+    // Saving of game time data
+
     // Ternary, if game exists in server's stats then add total time played to what is stored, if it doesnt then assign time played.
     if(gameName in statsFile["Total Minutes Played"]){
         statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor;
@@ -901,24 +903,15 @@ function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
 
     // Saving of member's stats
     var memberStatsFilePath = GetTotalMemberStatsFilePath(newMember.guild.id);
-    
-    //console.log(memberStatsFilePath)
-    
     var memberStatsFile = require(memberStatsFilePath);
     var memberName = newMember.displayName;
-    
-    console.log(memberStatsFile)
-    console.log(gameName)
-    //console.log((gameName in memberStatsFile[memberName]))
 
     try{
         // Ternary, if user's content exists in members's stats then add total time played to what is stored, if it doesnt then assign time played.
         if(gameName in memberStatsFile[memberName]){
-            //var timePlayedSoFar = memberStatsFile[memberName][gameName];
             memberStatsFile[memberName][gameName] += totalTimeOpenFor;
         }else{
-            console.log("new user")
-            //memberStatsFile[memberName] = {};
+            console.log(`${gameName} is a new game for user ${memberName}`)
             memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
         }
     }catch{
@@ -927,12 +920,9 @@ function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
         memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
     }
     
-    
-    console.log("Updating member stats");
-    console.log(memberStatsFile);
     UpdateJsonFile(memberStatsFilePath, memberStatsFile);
-
 }
+
 // Function for updating the current day's records
 function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
     var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
