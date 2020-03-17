@@ -367,6 +367,34 @@ bot.on('message', async(message) => {
             SendStatsToServer(message,serverStats,totalStatsPages,page,whichPeriod,"Role",gameRoleKey);
             break;
 
+        case '!gmstatsmembers':
+            // Send member stats for the total time
+            var whichPeriod = "Total";
+            var memberStatsFilePath = GetMemberStatsFilePath(message.member,whichPeriod);   
+            message.channel.send(`Member Playtime Total - **${message.member.guild.name}**`, {files:[memberStatsFilePath]});
+            break;
+
+        case '!gmstatsmembersday':
+            // Send member stats for the current day
+            var whichPeriod = "Day";
+            var memberStatsFilePath = GetMemberStatsFilePath(message.member,whichPeriod);   
+            message.channel.send(`Member Playtime For Current ${whichPeriod} - **${message.member.guild.name}**`, {files:[memberStatsFilePath]});
+            break;
+
+        case '!gmstatsmembersweek':
+            // Send member stats for the current week
+            var whichPeriod = "Week";
+            var memberStatsFilePath = GetMemberStatsFilePath(message.member,whichPeriod);   
+            message.channel.send(`Member Playtime For Current ${whichPeriod} - **${message.member.guild.name}**`, {files:[memberStatsFilePath]});
+            break;
+
+        case '!gmstatsmembersmonth':
+            // Send member stats for the current month
+            var whichPeriod = "Month";
+            var memberStatsFilePath = GetMemberStatsFilePath(message.member,whichPeriod);   
+            message.channel.send(`Member Playtime For Current ${whichPeriod} - **${message.member.guild.name}**`, {files:[memberStatsFilePath]});
+            break;
+
         // Commands for settings
         case '!gmsettings':
             if (args.length == 1){
@@ -764,6 +792,24 @@ function GetServerStats(guild,desiredPage,whichPeriod,gameRoleKey){
 
     // Return the rich embed containing the stats image.
     return [statsEmbeded,totalPages];
+}
+
+function GetMemberStatsFilePath(member,whichPeriod){
+    var memberStatsFilePath;
+
+    if (whichPeriod == "Total"){
+        memberStatsFilePath = GetTotalMemberStatsFilePath(member.guild.id);
+    }else if (whichPeriod == "Day"){
+        memberStatsFilePath = GetDayMemberStatsFilePath(member.guild.id);
+    }else if (whichPeriod == "Week"){
+        memberStatsFilePath = GetWeekMemberStatsFilePath(member.guild.id);
+    }else if (whichPeriod == "Month"){
+        memberStatsFilePath = GetMonthMemberStatsFilePath(member.guild.id);
+    }else{
+        console.log("Get member stats error.");
+    }
+
+    return memberStatsFilePath;
 }
 
 function ConvertDataToBetterUnitOfTime(dataArr){
