@@ -552,6 +552,10 @@ async function InitialiseNewServer(guild){
     memberStatsObj = {}
 
     // Setup server's member stats recording for the current day.
+    var serverTotalMemberStatsFilePath = GetTotalMemberStatsFilePath(guild.id);
+    UpdateJsonFile(serverTotalMemberStatsFilePath, memberStatsObj);
+
+    // Setup server's member stats recording for the current day.
     var serverDayMemberStatsFilePath = GetDayMemberStatsFilePath(guild.id);
     UpdateJsonFile(serverDayMemberStatsFilePath, memberStatsObj);
 
@@ -777,10 +781,10 @@ function GetServerStats(guild,desiredPage,whichPeriod,gameRoleKey){
     if (gameRoleKey == "Total Minutes Played"){
         var temp = minHourDay + " Played";
         gameRoleKeyEncoded = temp.replace(/\s+/g, '%20');
-        console.log(gameRoleKeyEncoded)
+        //console.log(gameRoleKeyEncoded)
     }else if (gameRoleKey == "Number of times roles added to users"){
         gameRoleKeyEncoded = gameRoleKey.replace(/\s+/g, '%20');
-        console.log(gameRoleKeyEncoded)
+        //console.log(gameRoleKeyEncoded)
     }
 
     var chartData = `{type:"bar",data:{labels:[${labelsArr}],datasets:[{label:'${gameRoleKeyEncoded}',data:[${dataArr}]}]}}` 
@@ -957,7 +961,7 @@ function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
         if(gameName in memberStatsFile[memberName]){
             memberStatsFile[memberName][gameName] += totalTimeOpenFor;
         }else{
-            console.log(`${gameName} is a new game for user ${memberName}`)
+            console.log(`${gameName} is a new game for user ${memberName} in server ${newMember.guild.name} - FULL`);
             memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
         }
     }catch{
@@ -970,9 +974,15 @@ function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
 }
 
 // Function for updating the current day's records
-function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
+async function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
     var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
-    var statsFile = require(statsFilePath);
+    statsFile = await require(statsFilePath);
+
+    if (newMember.guild.name == "Redsky"){
+        console.log("Before")
+        console.log(statsFile);
+    }
+    
 
     // Ternary, if game exists in server's day stats then add total time played to what is stored, if it doesnt then assign time played.
     if(gameName in statsFile["Total Minutes Played"]){
@@ -982,11 +992,17 @@ function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
     }
     UpdateJsonFile(statsFilePath, statsFile);
 
+
+    if (newMember.guild.name == "Redsky"){
+        console.log("After")
+        console.log(statsFile)
+    }
+
     //--
 
     // Saving of member's stats
     var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
-    var memberStatsFile = require(memberStatsFilePath);
+    var memberStatsFile = await require(memberStatsFilePath);
     var memberName = newMember.displayName;
 
     try{
@@ -994,7 +1010,7 @@ function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
         if(gameName in memberStatsFile[memberName]){
             memberStatsFile[memberName][gameName] += totalTimeOpenFor;
         }else{
-            console.log(`${gameName} is a new game for user ${memberName}`)
+            console.log(`${gameName} is a new game for user ${memberName} in server ${newMember.guild.name} - DAY`)
             memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
         }
     }catch{
@@ -1031,7 +1047,7 @@ function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
         if(gameName in memberStatsFile[memberName]){
             memberStatsFile[memberName][gameName] += totalTimeOpenFor;
         }else{
-            console.log(`${gameName} is a new game for user ${memberName}`)
+            console.log(`${gameName} is a new game for user ${memberName} in server ${newMember.guild.name} - WEEK`)
             memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
         }
     }catch{
@@ -1068,7 +1084,7 @@ function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
         if(gameName in memberStatsFile[memberName]){
             memberStatsFile[memberName][gameName] += totalTimeOpenFor;
         }else{
-            console.log(`${gameName} is a new game for user ${memberName}`)
+            console.log(`${gameName} is a new game for user ${memberName} in server ${newMember.guild.name} - MONTH`)
             memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
         }
     }catch{
@@ -1085,7 +1101,11 @@ function RemoveDayStatContent(){
     console.log("Running removing day data function...");
     global.setInterval(function(){
         var date = new Date();
-        if(date.getHours() == 00 && date.getMinutes() == 01){
+        //console.log(date.getHours())
+        //console.log(date.getMinutes())
+        //console.log(date.getHours() == 00 && date.getMinutes() == 00)
+        //console.log(date.getHours() == 0 && date.getMinutes() == 0)
+        if(date.getHours() == 00 && date.getMinutes() == 41){
             // Remove day content
             console.log("Removing all server's day content");
             var obj = {"Total Minutes Played":{},
@@ -1094,19 +1114,19 @@ function RemoveDayStatContent(){
 
             fs.readdir('./Servers', function (err, files) {
                 if (err) { return console.log('Unable to scan directory: ' + err); } 
-                files.forEach(function (file) {
+                files.forEach(async function (file) {
                     console.log(`Removing server: ${file} day content`);
                     var serverId = file;
 
                     var statsFilePath = GetDayStatsFilePath(serverId);
-                    UpdateJsonFile(statsFilePath,obj);
+                    await UpdateJsonFile(statsFilePath,obj);
 
                     var memberStatsFilePath = GetDayMemberStatsFilePath(serverId);
-                    UpdateJsonFile(memberStatsFilePath, {});
+                    await UpdateJsonFile(memberStatsFilePath, {});
                 });
             });
         }
-    }, 30000)
+    }, 60000)
 }
 
 // Function for removing each server's week stats at the beginning of a new week.
@@ -1115,7 +1135,7 @@ function RemoveWeekStatContent(){
     global.setInterval(function(){
         var date = new Date();
         // Is the current date var 00:00 on a monday?
-        if(date.getHours() == 00 && date.getMinutes() == 01 && date.getDay() == 1){
+        if(date.getHours() == 00 && date.getMinutes() == 00 && date.getDay() == 1){
             // Remove week content
             console.log("Removing all server's week content");
             var obj = {"Total Minutes Played":{},
@@ -1136,7 +1156,7 @@ function RemoveWeekStatContent(){
                 });
             });
         }
-    }, 30000)
+    }, 60000)
 }
 
 // Function for removing each server's month stats at the beginning of a new month.
@@ -1145,7 +1165,7 @@ function RemoveMonthStatContent(){
     global.setInterval(function(){
         var date = new Date();
         // Is the current date var 00:00 on a monday?
-        if(date.getHours() == 00 && date.getMinutes() == 01 && date.getDate() == 1){
+        if(date.getHours() == 00 && date.getMinutes() == 00 && date.getDate() == 1){
             // Remove week content
             console.log("Removing all server's month content");
             var obj = {"Total Minutes Played":{},
@@ -1166,7 +1186,7 @@ function RemoveMonthStatContent(){
                 });
             });
         }
-    }, 30000)
+    }, 60000)
 }
 
 // Smaller functions -------
