@@ -1101,11 +1101,7 @@ function RemoveDayStatContent(){
     console.log("Running removing day data function...");
     global.setInterval(function(){
         var date = new Date();
-        //console.log(date.getHours())
-        //console.log(date.getMinutes())
-        //console.log(date.getHours() == 00 && date.getMinutes() == 00)
-        //console.log(date.getHours() == 0 && date.getMinutes() == 0)
-        if(date.getHours() == 00 && date.getMinutes() == 41){
+        if(date.getHours() == 00 && date.getMinutes() == 00){
             // Remove day content
             console.log("Removing all server's day content");
             var obj = {"Total Minutes Played":{},
