@@ -1,3 +1,8 @@
+// --
+// GAME MANAGEMENT DISCORD BOT CREATED BY JACOB STENSON
+// FINAL YEAR COMPUTING DISSERTATION AT COVENTRY UNIVERISTY
+// --
+
 const Discord = require('discord.js');
 const jsonfile = require('jsonfile');
 const fs = require('fs-extra');
@@ -974,16 +979,19 @@ function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
 }
 
 // Function for updating the current day's records
-async function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
-    var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
-    statsFile = await require(statsFilePath);
+function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
 
-    if (newMember.guild.name == "Redsky"){
-        console.log("Before")
-        console.log(statsFile);
+    // Try to fetch game stats day file... if error then presume the file doesnt exist and create empty file content.
+    try{
+        var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
+        var statsFile = require(statsFilePath);
+    }catch{
+        var statsFile = {
+            "Total Minutes Played": {},
+            "Number of times roles added to users": {}
+          };
     }
     
-
     // Ternary, if game exists in server's day stats then add total time played to what is stored, if it doesnt then assign time played.
     if(gameName in statsFile["Total Minutes Played"]){
         statsFile["Total Minutes Played"][gameName] += totalTimeOpenFor;
@@ -992,17 +1000,17 @@ async function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
     }
     UpdateJsonFile(statsFilePath, statsFile);
 
-
-    if (newMember.guild.name == "Redsky"){
-        console.log("After")
-        console.log(statsFile)
-    }
-
     //--
 
     // Saving of member's stats
-    var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
-    var memberStatsFile = await require(memberStatsFilePath);
+
+    // Try to fetch a member stats day file... if error then presume the file doesnt exist and create empty file content.
+    try{
+        var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
+        var memberStatsFile = require(memberStatsFilePath);
+    }catch{
+        var memberStatsFile = {}
+    }
     var memberName = newMember.displayName;
 
     try{
@@ -1010,11 +1018,9 @@ async function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
         if(gameName in memberStatsFile[memberName]){
             memberStatsFile[memberName][gameName] += totalTimeOpenFor;
         }else{
-            console.log(`${gameName} is a new game for user ${memberName} in server ${newMember.guild.name} - DAY`)
             memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
         }
     }catch{
-        console.log("New user's records to record.")
         memberStatsFile[memberName] = {};
         memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
     }
@@ -1024,8 +1030,16 @@ async function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
 
 // Function for updating the current week's records
 function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
-    var statsFilePath = GetWeekStatsFilePath(newMember.guild.id);
-    var statsFile = require(statsFilePath);
+    // Try to fetch game stats week file... if error then presume the file doesnt exist and create empty file content.
+    try{
+        var statsFilePath = GetWeekMemberStatsFilePath(newMember.guild.id);
+        var statsFile = require(statsFilePath);
+    }catch{
+        var statsFile = {
+            "Total Minutes Played": {},
+            "Number of times roles added to users": {}
+          };
+    }
 
     // Ternary, if game exists in server's week stats then add total time played to what is stored, if it doesnt then assign time played.
     if(gameName in statsFile["Total Minutes Played"]){
@@ -1038,8 +1052,14 @@ function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
     //--
 
     // Saving of member's stats
-    var memberStatsFilePath = GetWeekMemberStatsFilePath(newMember.guild.id);
-    var memberStatsFile = require(memberStatsFilePath);
+
+    // Try to fetch a member stats week file... if error then presume the file doesnt exist and create empty file content.
+    try{
+        var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
+        var memberStatsFile = require(memberStatsFilePath);
+    }catch{
+        var memberStatsFile = {}
+    }
     var memberName = newMember.displayName;
 
     try{
@@ -1047,11 +1067,9 @@ function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
         if(gameName in memberStatsFile[memberName]){
             memberStatsFile[memberName][gameName] += totalTimeOpenFor;
         }else{
-            console.log(`${gameName} is a new game for user ${memberName} in server ${newMember.guild.name} - WEEK`)
             memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
         }
     }catch{
-        console.log("New user's records to record.")
         memberStatsFile[memberName] = {};
         memberStatsFile[memberName][`${gameName}`] = totalTimeOpenFor;
     }
@@ -1061,8 +1079,16 @@ function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
 
 // Function for updating the current months's records
 function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
-    var statsFilePath = GetMonthStatsFilePath(newMember.guild.id);
-    var statsFile = require(statsFilePath);
+    // Try to fetch game stats month file... if error then presume the file doesnt exist and create empty file content.
+    try{
+        var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
+        var statsFile = require(statsFilePath);
+    }catch{
+        var statsFile = {
+            "Total Minutes Played": {},
+            "Number of times roles added to users": {}
+          };
+    }
 
     // Ternary, if game exists in server's month stats then add total time played to what is stored, if it doesnt then assign time played.
     if(gameName in statsFile["Total Minutes Played"]){
@@ -1075,8 +1101,14 @@ function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
     //--
 
     // Saving of member's stats
-    var memberStatsFilePath = GetMonthMemberStatsFilePath(newMember.guild.id);
-    var memberStatsFile = require(memberStatsFilePath);
+
+    // Try to fetch a member stats month file... if error then presume the file doesnt exist and create empty file content.
+    try{
+        var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
+        var memberStatsFile = require(memberStatsFilePath);
+    }catch{
+        var memberStatsFile = {}
+    }
     var memberName = newMember.displayName;
 
     try{
@@ -1104,10 +1136,6 @@ function RemoveDayStatContent(){
         if(date.getHours() == 00 && date.getMinutes() == 00){
             // Remove day content
             console.log("Removing all server's day content");
-            var obj = {"Total Minutes Played":{},
-                "Number of times roles added to users":{}
-                };
-
             fs.readdir('./Servers', function (err, files) {
                 if (err) { return console.log('Unable to scan directory: ' + err); } 
                 files.forEach(async function (file) {
@@ -1115,10 +1143,10 @@ function RemoveDayStatContent(){
                     var serverId = file;
 
                     var statsFilePath = GetDayStatsFilePath(serverId);
-                    await UpdateJsonFile(statsFilePath,obj);
+                    fs.unlinkSync(statsFilePath);
 
                     var memberStatsFilePath = GetDayMemberStatsFilePath(serverId);
-                    await UpdateJsonFile(memberStatsFilePath, {});
+                    fs.unlinkSync(memberStatsFilePath);
                 });
             });
         }
@@ -1134,10 +1162,6 @@ function RemoveWeekStatContent(){
         if(date.getHours() == 00 && date.getMinutes() == 00 && date.getDay() == 1){
             // Remove week content
             console.log("Removing all server's week content");
-            var obj = {"Total Minutes Played":{},
-                "Number of times roles added to users":{}
-                };
-
             fs.readdir('./Servers', function (err, files) {
                 if (err) { return console.log('Unable to scan directory: ' + err); } 
                 files.forEach(function (file) {
@@ -1145,10 +1169,10 @@ function RemoveWeekStatContent(){
                     var serverId = file;
 
                     var statsFilePath = GetWeekStatsFilePath(serverId);
-                    UpdateJsonFile(statsFilePath,obj);
+                    fs.unlinkSync(statsFilePath);
 
                     var memberStatsFilePath = GetWeekMemberStatsFilePath(serverId);
-                    UpdateJsonFile(memberStatsFilePath, {});
+                    fs.unlinkSync(memberStatsFilePath);
                 });
             });
         }
@@ -1164,21 +1188,17 @@ function RemoveMonthStatContent(){
         if(date.getHours() == 00 && date.getMinutes() == 00 && date.getDate() == 1){
             // Remove week content
             console.log("Removing all server's month content");
-            var obj = {"Total Minutes Played":{},
-                "Number of times roles added to users":{}
-                };
-
             fs.readdir('./Servers', function (err, files) {
                 if (err) { return console.log('Unable to scan directory: ' + err); } 
                 files.forEach(function (file) {
                     console.log(`Removing server: ${file} month content`);
                     var serverId = file;
 
-                    var statsFilePath = GetWeekStatsFilePath(serverId);
-                    UpdateJsonFile(statsFilePath,obj);
+                    var statsFilePath = GetMonthMemberStatsFilePath(serverId);
+                    fs.unlinkSync(statsFilePath);
 
                     var memberStatsFilePath = GetMonthMemberStatsFilePath(serverId);
-                    UpdateJsonFile(memberStatsFilePath, {});
+                    fs.unlinkSync(memberStatsFilePath);
                 });
             });
         }
