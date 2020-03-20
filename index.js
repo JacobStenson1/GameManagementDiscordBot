@@ -396,7 +396,14 @@ bot.on('message', async(message) => {
         case '!gmstatsmembersmonth':
             // Send member stats for the current month
             var whichPeriod = "Month";
-            var memberStatsFilePath = GetMemberStatsFilePath(message.member,whichPeriod);   
+            var memberStatsFilePath = GetMemberStatsFilePath(message.member,whichPeriod);
+            message.channel.send(`Member Playtime For Current ${whichPeriod} - **${message.member.guild.name}**`, {files:[memberStatsFilePath]});
+            break;
+
+        case '!gmstatsmemberstotal':
+            // Send member stats for the current month
+            var whichPeriod = "Total";
+            var memberStatsFilePath = GetMemberStatsFilePath(message.member,whichPeriod);
             message.channel.send(`Member Playtime For Current ${whichPeriod} - **${message.member.guild.name}**`, {files:[memberStatsFilePath]});
             break;
 
@@ -984,10 +991,8 @@ function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
     // Try to fetch game stats day file... if error then presume the file doesnt exist and create empty file content.
     var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
     if (fs.existsSync(statsFilePath)){
-        console.log("found file")
         var statsFile = require(statsFilePath);
     }else{
-        console.log("No file found")
         var statsFile = {
             "Total Minutes Played": {},
             "Number of times roles added to users": {}
