@@ -1007,10 +1007,10 @@ function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
     // Saving of member's stats
 
     // Try to fetch a member stats day file... if error then presume the file doesnt exist and create empty file content.
-    try{
-        var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
+    var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
+    if(fs.existsSync(memberStatsFilePath)){
         var memberStatsFile = require(memberStatsFilePath);
-    }catch{
+    }else{
         var memberStatsFile = {}
     }
     var memberName = newMember.displayName;
@@ -1033,10 +1033,10 @@ function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
 // Function for updating the current week's records
 function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
     // Try to fetch game stats week file... if error then presume the file doesnt exist and create empty file content.
-    try{
-        var statsFilePath = GetWeekMemberStatsFilePath(newMember.guild.id);
+    statsFilePath = GetWeekMemberStatsFilePath(newMember.guild.id);
+    if (fs.existsSync(statsFilePath)){
         var statsFile = require(statsFilePath);
-    }catch{
+    }else{
         var statsFile = {
             "Total Minutes Played": {},
             "Number of times roles added to users": {}
@@ -1056,10 +1056,10 @@ function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
     // Saving of member's stats
 
     // Try to fetch a member stats week file... if error then presume the file doesnt exist and create empty file content.
-    try{
-        var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
+    var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
+    if (fs.existsSync(memberStatsFilePath)){
         var memberStatsFile = require(memberStatsFilePath);
-    }catch{
+    }else{
         var memberStatsFile = {}
     }
     var memberName = newMember.displayName;
@@ -1082,10 +1082,10 @@ function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
 // Function for updating the current months's records
 function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
     // Try to fetch game stats month file... if error then presume the file doesnt exist and create empty file content.
-    try{
-        var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
+    statsFilePath = GetMonthStatsFilePath(newMember.guild.id);
+    if (fs.existsSync(statsFilePath)){
         var statsFile = require(statsFilePath);
-    }catch{
+    }else{
         var statsFile = {
             "Total Minutes Played": {},
             "Number of times roles added to users": {}
@@ -1105,12 +1105,13 @@ function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
     // Saving of member's stats
 
     // Try to fetch a member stats month file... if error then presume the file doesnt exist and create empty file content.
-    try{
-        var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
+    var memberStatsFilePath = GetMonthMemberStatsFilePath(newMember.guild.id);
+    if (fs.existsSync(memberStatsFilePath)){
         var memberStatsFile = require(memberStatsFilePath);
-    }catch{
+    }else{
         var memberStatsFile = {}
     }
+    
     var memberName = newMember.displayName;
 
     try{
