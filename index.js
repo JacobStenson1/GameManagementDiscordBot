@@ -1133,7 +1133,8 @@ function RemoveDayStatContent(){
     console.log("Running removing day data function...");
     global.setInterval(function(){
         var date = new Date();
-        if(date.getHours() == 00 && date.getMinutes() == 00){
+        console.log(date.getMinutes())
+        if(date.getHours() == 0 && date.getMinutes() == 0){
             // Remove day content
             console.log("Removing all server's day content");
             fs.readdir('./Servers', function (err, files) {
