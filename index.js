@@ -982,10 +982,12 @@ function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
 function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
 
     // Try to fetch game stats day file... if error then presume the file doesnt exist and create empty file content.
-    try{
-        var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
+    var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
+    if (fs.existsSync(statsFilePath)){
+        console.log("found file")
         var statsFile = require(statsFilePath);
-    }catch{
+    }else{
+        console.log("No file found")
         var statsFile = {
             "Total Minutes Played": {},
             "Number of times roles added to users": {}
@@ -1133,7 +1135,6 @@ function RemoveDayStatContent(){
     console.log("Running removing day data function...");
     global.setInterval(function(){
         var date = new Date();
-        console.log(date.getMinutes())
         if(date.getHours() == 0 && date.getMinutes() == 0){
             // Remove day content
             console.log("Removing all server's day content");
@@ -1151,7 +1152,7 @@ function RemoveDayStatContent(){
                 });
             });
         }
-    }, 60000)
+    }, 30000)
 }
 
 // Function for removing each server's week stats at the beginning of a new week.
@@ -1160,7 +1161,7 @@ function RemoveWeekStatContent(){
     global.setInterval(function(){
         var date = new Date();
         // Is the current date var 00:00 on a monday?
-        if(date.getHours() == 00 && date.getMinutes() == 00 && date.getDay() == 1){
+        if(date.getHours() == 0 && date.getMinutes() == 0 && date.getDay() == 1){
             // Remove week content
             console.log("Removing all server's week content");
             fs.readdir('./Servers', function (err, files) {
@@ -1186,7 +1187,7 @@ function RemoveMonthStatContent(){
     global.setInterval(function(){
         var date = new Date();
         // Is the current date var 00:00 on a monday?
-        if(date.getHours() == 00 && date.getMinutes() == 00 && date.getDate() == 1){
+        if(date.getHours() == 0 && date.getMinutes() == 0 && date.getDate() == 1){
             // Remove week content
             console.log("Removing all server's month content");
             fs.readdir('./Servers', function (err, files) {
