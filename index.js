@@ -500,13 +500,13 @@ bot.on('message', async(message) => {
                 case '!gmhelp':
                     commandHelpWith = `help`;
                     commandUse = `!gmhelp [Command]`;
-                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include: test, add, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
+                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include:\ntest, add, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
                     break;
             }
 
-            var messagecontent = '```Command: !gm'+commandHelpWith+'\n\n'+
-            'Usage: '+commandUse+'\n\n'+
-            'Description: '+commandDescription+'```';
+            var messagecontent = '```-- !gm'+commandHelpWith+' --\n\n'+
+            'Usage:\n'+commandUse+'\n\n'+
+            'Description:\n'+commandDescription+'```';
 
             message.channel.send(`Help for the **${commandHelpWith}** command.\n${messagecontent}`);
             
