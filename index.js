@@ -1136,7 +1136,7 @@ function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
     // Saving of member's stats
 
     // Try to fetch a member stats week file... if error then presume the file doesnt exist and create empty file content.
-    var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
+    var memberStatsFilePath = GetWeekMemberStatsFilePath(newMember.guild.id);
     if (fs.existsSync(memberStatsFilePath)){
         var memberStatsFile = require(memberStatsFilePath);
     }else{
