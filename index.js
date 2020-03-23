@@ -1038,7 +1038,7 @@ function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
 // Function for updating the current week's records
 function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
     // Try to fetch game stats week file... if error then presume the file doesnt exist and create empty file content.
-    statsFilePath = GetWeekMemberStatsFilePath(newMember.guild.id);
+    statsFilePath = GetWeekStatsFilePath(newMember.guild.id);
     if (fs.existsSync(statsFilePath)){
         var statsFile = require(statsFilePath);
     }else{
