@@ -233,7 +233,8 @@ bot.on('message', async(message) => {
             break;
 
         case '!gmgames':
-            message.reply("Games list not implemented yet.");
+            const serverGameWhitelist = GetWhitelistFilePath(message.guild.id);
+            message.reply(`This is **${message.guild.name}**'s whitelist file.\n[Game Name]: [Role Name / Role ID]`, {files:[serverGameWhitelist]});
             break;
 
         // STATISTICS RELATED COMMANDS...
@@ -400,13 +401,6 @@ bot.on('message', async(message) => {
             message.channel.send(`Member Playtime For Current ${whichPeriod} - **${message.member.guild.name}**`, {files:[memberStatsFilePath]});
             break;
 
-        case '!gmstatsmemberstotal':
-            // Send member stats for the current month
-            var whichPeriod = "Total";
-            var memberStatsFilePath = GetMemberStatsFilePath(message.member,whichPeriod);
-            message.channel.send(`Member Playtime For Current ${whichPeriod} - **${message.member.guild.name}**`, {files:[memberStatsFilePath]});
-            break;
-
         // Commands for settings
         case '!gmsettings':
             if (args.length == 1){
@@ -432,9 +426,90 @@ bot.on('message', async(message) => {
             break;
 
 
-        // Commands for help
+        // Command that shows help for the different commsnds.
         case '!gmhelp':
-            message.reply("Help has not been implemented yet. Coming soon.");
+            //message.reply("Help has not been implemented yet. Coming soon.");
+            var commandHelpWith = args.pop();
+            var commandDescription = 'This command shows a description for a specified command.';
+            var commandUse = `!gmhelp [Command]`;
+            switch(commandHelpWith){
+                case 'test':
+                    commandUse = `!gmtest`;
+                    commandDescription = `Usage The bot will send a reply to the user, allowing them to test if the bot is online.`;
+                    break;
+                case 'add':
+                    commandUse = `!gmadd [Game Name] [Role Name OR @RoleName]`;
+                    commandDescription = `Adds the game and a role that would be added`;
+                    break;
+                case 'addmygame':
+                    commandUse = `!gmaddmygame [Role Name OR @RoleName]`;
+                    commandDescription = `Adds the current game the user is playing to a server's whitelist, with the role specified.`
+                    break;
+                case 'delete':
+                    commandUse = `!gmdelete [Game Name] [Role Name]`;
+                    commandDescription = `Deletes a game and it's role pair from the whitelist file.`;
+                    break;
+                case 'games':
+                    commandUse = `!gmgames`;
+                    commandDescription = `Sends the server's whitelist file, that members may download and view.`;
+                    break;
+                case 'stats':
+                    commandUse = `!gmstats OR !gmstats [Desired Page]`;
+                    commandDescription = `Display the total game stats for a server in a nice little graph.\nUsers may change the page being displayed by clicking the reaction the bot adds.\nThese reactions are only added if the total pages are more than 1.`;
+                    break;
+                case 'statsday':
+                    commandUse = `!gmstatsday`;
+                    commandDescription = `Displays the current day's game stats for a server in a nice little graph\nUsers may change the page being displayed by clicking the reaction the bot adds.\nThese reactions are only added if the total pages are more than 1.`;
+                    break;
+                case 'statsweek':
+                    commandUse = `!gmstatsweek`;
+                    commandDescription = `Displays the current week's game stats for a server in a nice little graph\nUsers may change the page being displayed by clicking the reaction the bot adds.\nThese reactions are only added if the total pages are more than 1.`;
+                    break;
+                case 'statsmonth':
+                    commandUse = `!gmstatsmonth`;
+                    commandDescription = `Displays the current month's game stats for a server in a nice little graph\nUsers may change the page being displayed by clicking the reaction the bot adds.\nThese reactions are only added if the total pages are more than 1.`;
+                    break;
+                case 'statsrolestotal':
+                    commandUse = `!gmstatsrolestotal`;
+                    commandDescription = `Displays the total count for roles added to users in a graph.`;
+                    break;
+                case 'statsmembers':
+                    commandUse = `!gmstatsmembers`;
+                    commandDescription = `Sends the file containing the total stats for every member in a server, where members may view every member's playtime of each game they play, to Discord.`;
+                    break;
+                case 'statsmembersday':
+                    commandUse = `!gmstatsmembersday`;
+                    commandDescription = `Sends the file containing the current day's stats for every member in a server, where members may view every member's playtime of each game they play, to Discord.`;
+                    break;
+                case 'statsmembersweek':
+                    commandUse = `!gmstatsmembersweek`;
+                    commandDescription = `Sends the file containing the current week's stats for every member in a server, where members may view every member's playtime of each game they play, to Discord.`;
+                    break;
+                case 'statsmembersmonth':
+                    commandUse = `!gmstatsmembersmonth`;
+                    commandDescription = `Sends the file containing the current month's stats for every member in a server, where members may view every member's playtime of each game they play, to Discord.`;
+                    break;
+                case 'settings':
+                    commandUse = `!gmsettings [Setting To Change] [On/Off]`;
+                    commandDescription = `Allows members to change the settings for the server.\nSettings that may be changed are: createcategory`;
+                    break;
+                case 'help':
+                    commandUse = `!gmhelp [Command]`;
+                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include: test, add, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
+                    break;
+                case '!gmhelp':
+                    commandHelpWith = `help`;
+                    commandUse = `!gmhelp [Command]`;
+                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include: test, add, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
+                    break;
+            }
+
+            var messagecontent = '```Command: !gm'+commandHelpWith+'\n\n'+
+            'Usage: '+commandUse+'\n\n'+
+            'Description: '+commandDescription+'```';
+
+            message.channel.send(`Help for the **${commandHelpWith}** command.\n${messagecontent}`);
+            
             break;
     }
 });
@@ -1223,57 +1298,57 @@ function RemoveDataTimeoutFunctions(){
 }
 
 // Function for getting a server's total statistics file path.
-function GetTotalStatsFilePath(guild){
-    return `./Servers/${guild}/Statistics/GameStats/TotalStats.json`;
+function GetTotalStatsFilePath(guildID){
+    return `./Servers/${guildID}/Statistics/GameStats/TotalStats.json`;
 }
 
 // Function for getting a server's day statistics file path.
-function GetDayStatsFilePath(guild){
-    return `./Servers/${guild}/Statistics/GameStats/DayStats.json`;
+function GetDayStatsFilePath(guildID){
+    return `./Servers/${guildID}/Statistics/GameStats/DayStats.json`;
 }
 
 // Function for getting a server's weeks statistics file path.
-function GetWeekStatsFilePath(guild){
-    return `./Servers/${guild}/Statistics/GameStats/WeekStats.json`;
+function GetWeekStatsFilePath(guildID){
+    return `./Servers/${guildID}/Statistics/GameStats/WeekStats.json`;
 }
 
 // Function for getting a server's month statistics file path.
-function GetMonthStatsFilePath(guild){
-    return `./Servers/${guild}/Statistics/GameStats/MonthStats.json`;
+function GetMonthStatsFilePath(guildID){
+    return `./Servers/${guildID}/Statistics/GameStats/MonthStats.json`;
 }
 
-function GetTotalMemberStatsFilePath(guild){
-    return `./Servers/${guild}/Statistics/MemberStats/TotalMemberStats.json`;
+function GetTotalMemberStatsFilePath(guildID){
+    return `./Servers/${guildID}/Statistics/MemberStats/TotalMemberStats.json`;
 }
 
 // Function for getting a server's member stats for the current day.
-function GetDayMemberStatsFilePath(guild){
-    return `./Servers/${guild}/Statistics/MemberStats/DayMemberStats.json`;
+function GetDayMemberStatsFilePath(guildID){
+    return `./Servers/${guildID}/Statistics/MemberStats/DayMemberStats.json`;
 }
 
 // Function for getting a server's member stats for the current week.
-function GetWeekMemberStatsFilePath(guild){
-    return `./Servers/${guild}/Statistics/MemberStats/WeekMemberStats.json`;
+function GetWeekMemberStatsFilePath(guildID){
+    return `./Servers/${guildID}/Statistics/MemberStats/WeekMemberStats.json`;
 }
 
 // Function for getting a server's member stats for the current month.
-function GetMonthMemberStatsFilePath(guild){
-    return `./Servers/${guild}/Statistics/MemberStats/MonthMemberStats.json`;
+function GetMonthMemberStatsFilePath(guildID){
+    return `./Servers/${guildID}/Statistics/MemberStats/MonthMemberStats.json`;
 }
 
 // Function for getting a server's settings file path.
-function GetSettingsFilePath(guild){
-    return `./Servers/${guild}/settings.json`;
+function GetSettingsFilePath(guildID){
+    return `./Servers/${guildID}/settings.json`;
 }
 
 // Function for getting a server's whitelist file path.
-function GetWhitelistFilePath(guild){
-    return `./Servers/${guild}/whitelist.json`;
+function GetWhitelistFilePath(guildID){
+    return `./Servers/${guildID}/whitelist.json`;
 }
 
 // Function for getting a server's temporary record file path.
-function GetTempRecordFilePath(guild){
-    return `./Servers/${guild}/tempRecord.json`;
+function GetTempRecordFilePath(guildID){
+    return `./Servers/${guildID}/tempRecord.json`;
 }
 
 // Update the presence to display total servers the bot is in.
@@ -1306,8 +1381,8 @@ function ReverseBubbleSort(inputArr,labels){
     return inputArr,labels;
 }
 
-process.on('unhandledRejection', function (err) {
+/* process.on('unhandledRejection', function (err) {
 
-});
+}); */
 
 bot.login(token);
