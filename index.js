@@ -1353,7 +1353,17 @@ function GetTempRecordFilePath(guildID){
 
 // Update the presence to display total servers the bot is in.
 async function UpdatePresence(){
-    bot.user.setPresence({ game: { name: "!gmhelp - Adding Roles In "+bot.guilds.size+" Servers!", type: 0 } });
+    var roleCount = 0;
+    var whitelistFile;
+    fs.readdir('./Servers', function (err, files) {
+        if (err) { return console.log('Unable to scan directory: ' + err); } 
+        files.forEach(function (file) {
+            var whitelistFilePath = GetWhitelistFilePath(file);
+            whitelistFile = require(whitelistFilePath);
+            roleCount += Object.keys(whitelistFile).length;
+            bot.user.setPresence({ game: { name: `!gmhelp - Adding ${roleCount} Roles In ${bot.guilds.size} Servers!`,type: 0}});
+        });
+    });
 }
 
 async function UpdateJsonFile(filePath, content){
