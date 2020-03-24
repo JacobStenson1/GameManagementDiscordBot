@@ -167,6 +167,7 @@ bot.on('message', async(message) => {
 
             }else{ message.reply("You do not have permission to use that command."); }
 
+            UpdatePresence();
             break;
 
         case '!gmaddmygame':
