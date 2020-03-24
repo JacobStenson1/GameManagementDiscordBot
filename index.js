@@ -1066,7 +1066,8 @@ function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
     // Try to fetch game stats day file... if error then presume the file doesnt exist and create empty file content.
     var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
     if (fs.existsSync(statsFilePath)){
-        var statsFile = require(statsFilePath);
+        var statsFile = fs.readFileSync(statsFilePath);
+        statsFile = JSON.parse(statsFile);
     }else{
         var statsFile = {
             "Total Minutes Played": {},
@@ -1089,7 +1090,8 @@ function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
     // Try to fetch a member stats day file... if error then presume the file doesnt exist and create empty file content.
     var memberStatsFilePath = GetDayMemberStatsFilePath(newMember.guild.id);
     if(fs.existsSync(memberStatsFilePath)){
-        var memberStatsFile = require(memberStatsFilePath);
+        var memberStatsFile = fs.readFileSync(memberStatsFilePath);
+        memberStatsFile = JSON.parse(memberStatsFile);
     }else{
         var memberStatsFile = {}
     }
@@ -1115,7 +1117,8 @@ function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
     // Try to fetch game stats week file... if error then presume the file doesnt exist and create empty file content.
     statsFilePath = GetWeekStatsFilePath(newMember.guild.id);
     if (fs.existsSync(statsFilePath)){
-        var statsFile = require(statsFilePath);
+        var statsFile = fs.readFileSync(statsFilePath);
+        statsFile = JSON.parse(statsFile);
     }else{
         var statsFile = {
             "Total Minutes Played": {},
@@ -1138,7 +1141,8 @@ function UpdateWeekRecord(newMember,gameName,totalTimeOpenFor){
     // Try to fetch a member stats week file... if error then presume the file doesnt exist and create empty file content.
     var memberStatsFilePath = GetWeekMemberStatsFilePath(newMember.guild.id);
     if (fs.existsSync(memberStatsFilePath)){
-        var memberStatsFile = require(memberStatsFilePath);
+        var memberStatsFile = fs.readFileSync(memberStatsFilePath);
+        memberStatsFile = JSON.parse(memberStatsFile);
     }else{
         var memberStatsFile = {}
     }
@@ -1164,7 +1168,8 @@ function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
     // Try to fetch game stats month file... if error then presume the file doesnt exist and create empty file content.
     statsFilePath = GetMonthStatsFilePath(newMember.guild.id);
     if (fs.existsSync(statsFilePath)){
-        var statsFile = require(statsFilePath);
+        var statsFile = fs.readFileSync(statsFilePath);
+        statsFile = JSON.parse(statsFile);
     }else{
         var statsFile = {
             "Total Minutes Played": {},
@@ -1187,7 +1192,8 @@ function UpdateMonthRecord(newMember,gameName,totalTimeOpenFor){
     // Try to fetch a member stats month file... if error then presume the file doesnt exist and create empty file content.
     var memberStatsFilePath = GetMonthMemberStatsFilePath(newMember.guild.id);
     if (fs.existsSync(memberStatsFilePath)){
-        var memberStatsFile = require(memberStatsFilePath);
+        var memberStatsFile = fs.readFileSync(memberStatsFilePath);
+        memberStatsFile = JSON.parse(memberStatsFile);
     }else{
         var memberStatsFile = {}
     }
