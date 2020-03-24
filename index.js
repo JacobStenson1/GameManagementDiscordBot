@@ -410,10 +410,10 @@ bot.on('message', async(message) => {
             }
             // Use case: !gmsettings [Setting to change] [On/Off]
 
-            var newSettingValue = args.pop();
-            var settingToChange = args.pop();
+            var newSettingValue = args.pop().toLowerCase();
+            var settingToChange = args.pop().toLowerCase();
 
-            if (newSettingValue.toLowerCase() != "on" && newSettingValue.toLowerCase() != "off"){message.reply("Please use ON or OFF for a new setting value.")}
+            if (newSettingValue != "on" && newSettingValue != "off"){message.reply("Please use ON or OFF for a new setting value.")}
 
             if (settingToChange == "createcategory"){
                 // Does the user have the manage channels permission?
@@ -546,6 +546,8 @@ async function UpdateSetting(settingToChange, newSettingValue, message){
     var serverSettingsPath = GetSettingsFilePath(message.guild.id);
     var serverSettings = await require(serverSettingsPath);
     serverSettings[settingToChange] = newValue;
+
+    console.log(serverSettings)
 
     UpdateJsonFile(serverSettingsPath, serverSettings);
 }
