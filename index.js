@@ -291,6 +291,7 @@ bot.on('message', async(message) => {
             }
 
             SendStatsToServer(message,serverStats,totalStatsPages,page,whichPeriod,"Game");
+            message.channel.send("Day stats are a bit buggy at the moment so data may not be correct. Working on a fix.");
             break;
 
         case '!gmstatsweek':
@@ -386,6 +387,7 @@ bot.on('message', async(message) => {
             var whichPeriod = "Day";
             var memberStatsFilePath = GetMemberStatsFilePath(message.member,whichPeriod);   
             message.channel.send(`Member Playtime For Current ${whichPeriod} - **${message.member.guild.name}**`, {files:[memberStatsFilePath]});
+            message.channel.send("Day stats are a bit buggy at the moment so data may not be correct. Working on a fix.");
             break;
 
         case '!gmstatsmembersweek':
@@ -866,6 +868,13 @@ function GetServerStats(guild,desiredPage,whichPeriod,gameRoleKey){
         labelsArr.pop();
         dataArr.pop();
     }
+
+    // Set data to 2 decimal places as richembed sometimes run into issues regarding too long URLs.
+    for (let i = 0; i < dataArr.length; i++) {
+        const element = dataArr[i];
+        dataArr[i] = (Math.round(element * 100) / 100).toFixed(2);
+    }
+    
 
     // Replace spaces with encoded %20 for the key in graph.
     if (gameRoleKey == "Total Minutes Played"){
@@ -1400,8 +1409,8 @@ function ReverseBubbleSort(inputArr,labels){
     return inputArr,labels;
 }
 
-/* process.on('unhandledRejection', function (err) {
-
-}); */
+process.on('unhandledRejection', function (err) {
+    console.log("Error...")
+});
 
 bot.login(token);
