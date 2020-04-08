@@ -433,7 +433,7 @@ bot.on('message', async(message) => {
         case '!gmhelp':
             //message.reply("Help has not been implemented yet. Coming soon.");
             var commandHelpWith = args.pop();
-            var commandDescription = 'This command shows a description for a specified command.';
+            var commandDescription = 'THIS COMMAND DOES NOT EXIST';
             var commandUse = `!gmhelp [Command]`;
             switch(commandHelpWith){
                 case 'test':
@@ -503,7 +503,7 @@ bot.on('message', async(message) => {
                 case '!gmhelp':
                     commandHelpWith = `help`;
                     commandUse = `!gmhelp [Command]`;
-                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include:\ntest, add, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
+                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include:\ntest, add, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, settings, help`;
                     break;
             }
 
@@ -1410,7 +1410,7 @@ function ReverseBubbleSort(inputArr,labels){
 }
 
 process.on('unhandledRejection', function (err) {
-    console.log("Error...")
+    console.log("Error...");
 });
 
 bot.login(token);
