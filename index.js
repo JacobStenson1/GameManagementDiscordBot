@@ -237,6 +237,10 @@ bot.on('message', async(message) => {
             const serverGameWhitelist = GetWhitelistFilePath(message.guild.id);
             message.reply(`This is **${message.guild.name}**'s whitelist file.\n[Game Name]: [Role Name / Role ID]`, {files:[serverGameWhitelist]});
             break;
+            
+        case '!gmcreatecategory_mygame':
+            CreateCategoryTextAndVoice(message.member)
+            break;
 
         // STATISTICS RELATED COMMANDS...
         case '!gmstats':
@@ -291,7 +295,6 @@ bot.on('message', async(message) => {
             }
 
             SendStatsToServer(message,serverStats,totalStatsPages,page,whichPeriod,"Game");
-            message.channel.send("Day stats are a bit buggy at the moment so data may not be correct. Working on a fix.");
             break;
 
         case '!gmstatsweek':
@@ -348,7 +351,7 @@ bot.on('message', async(message) => {
             SendStatsToServer(message,serverStats,totalStatsPages,page,whichPeriod,"Game");
             break;
         
-        case '!gmstatsrolestotal':
+        case '!gmstatsroles':
             // Send the stats for the current day
             var returnedData;
             var page;
@@ -387,7 +390,6 @@ bot.on('message', async(message) => {
             var whichPeriod = "Day";
             var memberStatsFilePath = GetMemberStatsFilePath(message.member,whichPeriod);   
             message.channel.send(`Member Playtime For Current ${whichPeriod} - **${message.member.guild.name}**`, {files:[memberStatsFilePath]});
-            message.channel.send("Day stats are a bit buggy at the moment so data may not be correct. Working on a fix.");
             break;
 
         case '!gmstatsmembersweek':
@@ -605,6 +607,25 @@ async function CreateRoleTextVoiceChannel(newMember, roleToAddToMember){
     var newtTextChannel = await newMember.guild.createChannel(`${gameNameUserIsPlaying} Text`, {type: "text"});
     await newtTextChannel.setParent(newCategory);
     await newtTextChannel.lockPermissions();
+
+    console.log("Created category and channel.")
+}
+
+async function CreateCategoryTextAndVoice(member){
+    var gameNameUserIsPlaying = member.presence.game.name;
+    // Does the category we are going to create already exist?
+    if(member.guild.channels.find(x => x.name == gameNameUserIsPlaying)){ return; }
+
+    // Create category.
+    var newCategory = await member.guild.createChannel(gameNameUserIsPlaying, {type: "category"});
+
+    // Create voice channel for game.
+    var newVoiceChannel = await member.guild.createChannel(`${gameNameUserIsPlaying} Voice`, {type: "voice"});
+    await newVoiceChannel.setParent(newCategory);
+
+    // Create text channel for game.
+    var newtTextChannel = await member.guild.createChannel(`${gameNameUserIsPlaying} Text`, {type: "text"});
+    await newtTextChannel.setParent(newCategory);
 
     console.log("Created category and channel.")
 }
