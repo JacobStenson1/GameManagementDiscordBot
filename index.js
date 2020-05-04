@@ -458,6 +458,10 @@ bot.on('message', async(message) => {
                     commandUse = `!gmgames`;
                     commandDescription = `Sends the server's whitelist file, that members may download and view.`;
                     break;
+                case `!gmcreatecategory_mygame`:
+                    commandUse = `!gmcreatecategory_mygame`;
+                    commandDescription = `Create a category, voice and text channel for the game the command issuer is currently playing.`;
+                    break;
                 case 'stats':
                     commandUse = `!gmstats OR !gmstats [Desired Page]`;
                     commandDescription = `Display the total game stats for a server in a nice little graph.\nUsers may change the page being displayed by clicking the reaction the bot adds.\nThese reactions are only added if the total pages are more than 1.`;
