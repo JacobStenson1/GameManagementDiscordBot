@@ -458,7 +458,7 @@ bot.on('message', async(message) => {
                     commandUse = `!gmgames`;
                     commandDescription = `Sends the server's whitelist file, that members may download and view.`;
                     break;
-                case `!gmcreatecategory_mygame`:
+                case `createcategory_mygame`:
                     commandUse = `!gmcreatecategory_mygame`;
                     commandDescription = `Create a category, voice and text channel for the game the command issuer is currently playing.`;
                     break;
@@ -504,12 +504,12 @@ bot.on('message', async(message) => {
                     break;
                 case 'help':
                     commandUse = `!gmhelp [Command]`;
-                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include: test, add, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
+                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include: test, add, createcategory_mygame, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
                     break;
                 case '!gmhelp':
                     commandHelpWith = `help`;
                     commandUse = `!gmhelp [Command]`;
-                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include:\ntest, add, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, settings, help`;
+                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include: test, add, createcategory_mygame, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
                     break;
             }
 
