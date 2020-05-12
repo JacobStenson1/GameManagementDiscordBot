@@ -106,6 +106,7 @@ dist
 # GameManagementBot ignores
 config.json
 /Servers
+/ServerBackup
 ListOfServers.json
 notes.txt
 ignoredFile.js

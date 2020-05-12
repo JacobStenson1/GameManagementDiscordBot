@@ -19,6 +19,7 @@ bot.on('ready', async() => {
     console.log("Bot online.");
     UpdatePresence();
     RemoveDataTimeoutFunctions();
+    BackupTimeoutFunction();
 });
 
 // Called when bot is added to a new server.
@@ -1338,6 +1339,20 @@ function RemoveDataTimeoutFunctions(){
     RemoveDayStatContent();
     RemoveWeekStatContent();
     RemoveMonthStatContent();
+}
+
+function BackupTimeoutFunction(){
+    console.log("Running backup function.");
+    global.setInterval(function(){
+        var date = new Date();
+        // Is it the beginning of a new hour?
+        if(date.getMinutes() == 0){
+            console.log("BACKING UP SERVER FILES...")
+            // Copys server records and pastes them into "ServerBackup" folder.
+            fs.copySync("./Servers","./ServerBackup");
+            console.log("BACKUP COMPLETE.");
+        }
+    }, 60000)
 }
 
 // Function for getting a server's total statistics file path.
