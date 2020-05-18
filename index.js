@@ -562,7 +562,8 @@ async function UpdateSetting(settingToChange, newSettingValue, message){
 }
 
 async function OnJoinMessageSend(guild){
-    let messageContent = `
+    
+    /* var messageContent = `
     Hello! :smile:
     Salazhar (this bot's creator) thanks you for adding **${botName}** to ***${guild.name}***!
     Should you need help using the bot type !gmhelp in your server.
@@ -576,6 +577,15 @@ async function OnJoinMessageSend(guild){
     If you would like this setting on for your server. Please type "!gmsettings CreateCategory On" in your server.
     This setting can be turned off at any time using "!gmsettings CreateCategory Off"
     By default this setting is OFF.`;
+    */
+
+    let messageContent = `Hello!
+    Thank you for adding **${botName}** to ***${guild.name}***!
+    Use !gmhelp to get the bot to send a help section.
+    If you require any help or have any questions feel free to add the bot's creator on Discord: Salazhar#3517.
+    Enjoy!
+    
+    Salazhar`;
 
     // Send the message to the server owner.
     guild.owner.send(messageContent);
