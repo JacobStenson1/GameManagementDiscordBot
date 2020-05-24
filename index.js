@@ -810,8 +810,10 @@ async function GameRecording(oldMember, newMember){
 async function PermaRecordUserStats(tempGameRecord, serverTempRecordFilePath, newMember){
     let whenGameOpened = tempGameRecord[newMember.id]["dateGameOpen"];
     let gameName = tempGameRecord[newMember.id]["gameName"];
-    let totalTimeOpenFor = (Date.now() - whenGameOpened) / 60000;
-    console.log(`SAVE RECORD: ${newMember.displayName} | Game: ${tempGameRecord[newMember.id]["gameName"]} | Server: ${newMember.guild.name} | Minutes open for: ${totalTimeOpenFor}`);
+    let currentDate = Date.now();
+    let totalTimeOpenFor = (currentDate - whenGameOpened) / 60000;
+    let dateObj = new Date();
+    console.log(`SAVE RECORD: ${dateObj.toLocaleString()}: ${newMember.displayName} | Game: ${tempGameRecord[newMember.id]["gameName"]} | Server: ${newMember.guild.name} | Minutes open for: ${totalTimeOpenFor}`);
 
     delete tempGameRecord[newMember.id];
     UpdateJsonFile(serverTempRecordFilePath, tempGameRecord);
