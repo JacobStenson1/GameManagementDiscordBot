@@ -579,18 +579,23 @@ async function OnJoinMessageSend(guild){
     By default this setting is OFF.`;
     */
 
-    let messageContent = `Hello!
-    Thank you for adding **${botName}** to ***${guild.name}***!
+    let messageContent = `Thank you for adding **${botName}** to ***${guild.name}***! :white_check_mark:
     Use !gmhelp to get the bot to send a help section.
     If you require any help or have any questions feel free to add the bot's creator on Discord: Salazhar#3517.
-    Enjoy!
-    
-    Salazhar`;
+    Enjoy!`;
 
-    // Send the message to the server owner.
-    guild.owner.send(messageContent);
+    // Get either the default channel or the server owner if no default channel is found.
+    var recipientOfMsg;
+    if(guild.channels.has(guild.id)){
+        recipientOfMsg = guild.channels.get(guild.id);
+    }else{
+        recipientOfMsg = guild.owner;
+    }
 
-    console.log(`Owner of ${guild.name} has been messaged.`);
+    // Send the message to the default server or server owner.
+    recipientOfMsg.send(messageContent);
+
+    console.log(`Welcome message has been sent to: ${guild.name}.`);
 }
 
 // Create role and create voice and text channels for it. (May want to seperate this into two seperate functions. One for creating role and another for creating the text and voice stuff.)
