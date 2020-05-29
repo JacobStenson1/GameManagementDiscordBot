@@ -3,7 +3,7 @@
 
 View this bot on top.gg here: https://top.gg/bot/674596096575668225
 
-Discord bot for automatic role addition when memebers open whitelisted games. Automatic category creation for certain games when opened. Statistic recording and displaying using commands. Scroll through statistics using reactions.
+Discord bot for automatic role addition when memebers open whitelisted games, automatic category creation for certain games when opened and statistic recording and displaying using commands which can be scrolled through statistics using reactions.
 
 Commands: 
 Whitelist Management Commands:
