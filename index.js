@@ -1467,7 +1467,7 @@ function ReverseBubbleSort(inputArr,labels){
 }
 
 process.on('unhandledRejection', function (err) {
-    console.log("Error...");
+    console.log(`Error... : ${err}`);
 });
 
 bot.login(token);
