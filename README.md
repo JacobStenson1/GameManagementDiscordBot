@@ -1,7 +1,24 @@
 # GameManagement
- A Discord bot created by Jacob Stenson for his Computing Dissertation.
+### A Discord bot created by Salazhar
+
+View this bot on top.gg here: https://top.gg/bot/674596096575668225
+
+Discord bot for automatic role addition when memebers open whitelisted games. Automatic category creation for certain games when opened. Statistic recording and displaying using commands. Scroll through statistics using reactions.
+
+Commands: 
+Whitelist Management Commands:
+!gmadd [Game Name] [Role Name OR @RoleName] !gmaddmygame [Role Name OR @RoleName] !gmdelete [Game Name] [Role Name]
+
+Statistic Displaying Commands:
+!gmstats OR !gmstats [Desired Page] !gmstatsday !gmstatsweek !gmstatsmonth !gmstatsrolestotal !gmstatsmembers !gmstatsmembersday !gmstatsmembersweek !gmstatsmembersmonth
 
 Add this bot to your server: https://discordapp.com/oauth2/authorize?client_id=674596096575668225&permissions=8&scope=bot
+Add Salazhar on Discord: Salazhar#3517
+Join the bot support server: https://discord.gg/chhsmEq
+
+--
+
+A Discord bot created for a Computing Dissertation which has been expanded on further after completion of degree.
 
 If you wish to fork this repository you must have permission from the author before doing so.
 
