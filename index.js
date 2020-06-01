@@ -479,8 +479,8 @@ bot.on('message', async(message) => {
                     commandUse = `!gmstatsmonth`;
                     commandDescription = `Displays the current month's game stats for a server in a nice little graph\nUsers may change the page being displayed by clicking the reaction the bot adds.\nThese reactions are only added if the total pages are more than 1.`;
                     break;
-                case 'statsrolestotal':
-                    commandUse = `!gmstatsrolestotal`;
+                case 'statsroles':
+                    commandUse = `!gmstatsroles`;
                     commandDescription = `Displays the total count for roles added to users in a graph.`;
                     break;
                 case 'statsmembers':
@@ -505,12 +505,12 @@ bot.on('message', async(message) => {
                     break;
                 case 'help':
                     commandUse = `!gmhelp [Command]`;
-                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include: test, add, createcategory_mygame, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
+                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include: test, add, createcategory_mygame, addmygame, delete, games, statsday, statsweek, statsmonth, statsroles, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
                     break;
                 case '!gmhelp':
                     commandHelpWith = `help`;
                     commandUse = `!gmhelp [Command]`;
-                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include: test, add, createcategory_mygame, addmygame, delete, games, statsday, statsweek, statsmonth, statsrolestotal, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
+                    commandDescription = `Displays a description for the command and how it should be used.\n\n${botName} Commands Include: test, add, createcategory_mygame, addmygame, delete, games, statsday, statsweek, statsmonth, statsroles, statsmembers, statsmembersday, statsmembersweek, statsmembersmonth, statsmemberstotal, settings, help`;
                     break;
             }
 
@@ -933,7 +933,7 @@ function GetServerStats(guild,desiredPage,whichPeriod,gameRoleKey){
     var url = `https://quickchart.io/chart?c=${chartData}&bkg=white`;
 
     const statsEmbeded = new Discord.RichEmbed()
-             .setColor(0x00AE86)
+             .setColor(0x772CA4)
              .setImage(url)
 
     // Return the rich embed containing the stats image.
@@ -1116,13 +1116,13 @@ function UpdateFullRecord(newMember,gameName,totalTimeOpenFor){
 }
 
 // Function for updating the current day's records
-function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
+async function UpdateDayRecord(newMember,gameName,totalTimeOpenFor){
 
     // Try to fetch game stats day file... if error then presume the file doesnt exist and create empty file content.
     var statsFilePath = GetDayStatsFilePath(newMember.guild.id);
     if (fs.existsSync(statsFilePath)){
         var statsFile = fs.readFileSync(statsFilePath);
-        statsFile = JSON.parse(statsFile);
+        statsFile = await JSON.parse(statsFile);
     }else{
         var statsFile = {
             "Total Minutes Played": {},
