@@ -430,7 +430,11 @@ bot.on('message', async(message) => {
                 message.reply(`Invalid use of the command. ${settingToChange} is not a setting that can be changed.`);
             }
             break;
-
+        
+        case '!gmbackup':
+            Backup();
+            message.channel.send(`${botName} backed up files for all servers.`);
+            break;
 
         // Command that shows help for the different commsnds.
         case '!gmhelp':
@@ -1294,7 +1298,7 @@ function RemoveDayStatContent(){
                 });
             });
         }
-    }, 30000)
+    }, 60000)
 }
 
 // Function for removing each server's week stats at the beginning of a new week.
@@ -1303,7 +1307,7 @@ function RemoveWeekStatContent(){
     global.setInterval(function(){
         var date = new Date();
         // Is the current date var 00:00 on a monday?
-        if(date.getHours() == 0 && date.getMinutes() == 0 && date.getDay() == 1){
+        if(date.getHours() == 0 && date.getMinutes() == 1 && date.getDay() == 1){
             // Remove week content
             console.log("Removing all server's week content");
             fs.readdir('./Servers', function (err, files) {
@@ -1329,7 +1333,7 @@ function RemoveMonthStatContent(){
     global.setInterval(function(){
         var date = new Date();
         // Is the current date var 00:00 on a monday?
-        if(date.getHours() == 0 && date.getMinutes() == 0 && date.getDate() == 1){
+        if(date.getHours() == 0 && date.getMinutes() == 1 && date.getDate() == 1){
             // Remove week content
             console.log("Removing all server's month content");
             fs.readdir('./Servers', function (err, files) {
@@ -1364,12 +1368,16 @@ function BackupTimeoutFunction(){
         var date = new Date();
         // Is it the beginning of a new hour?
         if(date.getMinutes() == 0){
-            console.log("BACKING UP SERVER FILES...")
-            // Copys server records and pastes them into "ServerBackup" folder.
-            fs.copySync("./Servers","./ServerBackup");
-            console.log("BACKUP COMPLETE.");
+            Backup();
         }
     }, 60000)
+}
+
+function Backup(){
+    console.log("BACKING UP SERVER FILES...")
+    // Copys server records and pastes them into "ServerBackup" folder.
+    fs.copySync("./Servers","./ServerBackup");
+    console.log("BACKUP COMPLETE.");
 }
 
 // Function for getting a server's total statistics file path.
