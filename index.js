@@ -1291,10 +1291,14 @@ function RemoveDayStatContent(){
                     var serverId = file;
 
                     var statsFilePath = GetDayStatsFilePath(serverId);
-                    fs.unlinkSync(statsFilePath);
-
+                    if (fs.existsSync(statsFilePath)){
+                        fs.unlinkSync(statsFilePath);
+                    }
+                    
                     var memberStatsFilePath = GetDayMemberStatsFilePath(serverId);
-                    fs.unlinkSync(memberStatsFilePath);
+                    if (fs.existsSync(memberStatsFilePath)){
+                        fs.unlinkSync(memberStatsFilePath);
+                    }
                 });
             });
         }
@@ -1317,10 +1321,14 @@ function RemoveWeekStatContent(){
                     var serverId = file;
 
                     var statsFilePath = GetWeekStatsFilePath(serverId);
-                    fs.unlinkSync(statsFilePath);
+                    if (fs.existsSync(statsFilePath)){
+                        fs.unlinkSync(statsFilePath);
+                    }
 
                     var memberStatsFilePath = GetWeekMemberStatsFilePath(serverId);
-                    fs.unlinkSync(memberStatsFilePath);
+                    if (fs.existsSync(memberStatsFilePath)){
+                        fs.unlinkSync(memberStatsFilePath);
+                    }
                 });
             });
         }
@@ -1343,10 +1351,14 @@ function RemoveMonthStatContent(){
                     var serverId = file;
 
                     var statsFilePath = GetMonthMemberStatsFilePath(serverId);
-                    fs.unlinkSync(statsFilePath);
+                    if (fs.existsSync(statsFilePath)){
+                        fs.unlinkSync(statsFilePath);
+                    }
 
                     var memberStatsFilePath = GetMonthMemberStatsFilePath(serverId);
-                    fs.unlinkSync(memberStatsFilePath);
+                    if (fs.existsSync(memberStatsFilePath)){
+                        fs.unlinkSync(memberStatsFilePath);
+                    }
                 });
             });
         }
