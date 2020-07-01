@@ -65,6 +65,10 @@ bot.on('presenceUpdate', async(oldMember, newMember) => {
         // Return out if member is a bot..
         if(newMember.user.bot){ return; }
 
+        // Return out if server is that of DiscordBots server
+        if (newMember.guild.id == 264445053596991498)
+            return;
+
         // Record new game open (ignores whitelist).
         GameRecording(oldMember,newMember);
 
